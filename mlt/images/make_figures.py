@@ -141,9 +141,182 @@ def fig_elbow():
     save(fig, "elbow_method.png")
 
 
+# ---------------------------------------------------------------------------
+# 5. Linear regression: fitted line and the residuals being squared
+# ---------------------------------------------------------------------------
+def fig_linear_regression():
+    x = np.array([1, 2, 3, 4, 5, 6, 7], dtype=float)
+    y = np.array([1.2, 2.3, 2.1, 3.6, 4.2, 4.1, 5.4])
+
+    # least squares with intercept
+    A = np.c_[np.ones_like(x), x]
+    coef = np.linalg.lstsq(A, y, rcond=None)[0]
+    pred = A @ coef
+
+    fig, ax = plt.subplots(figsize=(6.4, 4.8))
+    # residual segments first so points sit on top
+    for xi, yi, pi in zip(x, y, pred):
+        ax.plot([xi, xi], [yi, pi], color="#d1495b", lw=1.8, zorder=2)
+    ax.plot(x, pred, color="#3b7dd8", lw=2.4,
+            label=r"fit  $\hat{y} = w^T x$", zorder=3)
+    ax.scatter(x, y, s=55, color="#12457a", zorder=4, label="data $(x_i, y_i)$")
+    ax.plot([], [], color="#d1495b", lw=1.8,
+            label=r"residual  $w^T x_i - y_i$")
+
+    ax.set_xlabel("$x$"); ax.set_ylabel("$y$")
+    ax.set_title("Linear regression minimises the SUM of SQUARED residuals\n"
+                 r"$f(w)=\sum_i (w^T x_i - y_i)^2 = \|X^T w - y\|^2$")
+    ax.legend(loc="upper left", fontsize=9)
+    ax.grid(alpha=.3)
+    save(fig, "linear_regression_fit.png")
+
+
+# ---------------------------------------------------------------------------
+# 6. Geometric interpretation: least squares = orthogonal projection
+# ---------------------------------------------------------------------------
+def fig_projection():
+    # subspace = span of a single feature-row, drawn as a line through origin
+    u = np.array([1.0, 0.45]); u = u / np.linalg.norm(u)
+    y = np.array([1.6, 2.3])
+    proj = (y @ u) * u                     # orthogonal projection of y
+
+    fig, ax = plt.subplots(figsize=(6.4, 5.2))
+    t = np.linspace(-0.4, 3.2, 2)
+    line = t[:, None] * u
+    ax.plot(line[:, 0], line[:, 1], color="#2a9d8f", lw=2.2,
+            label=r"subspace $\{X^T w\}$ = span of feature-rows")
+
+    ax.annotate("", xy=y, xytext=(0, 0),
+                arrowprops=dict(arrowstyle="-|>", color="#12457a", lw=2.6))
+    ax.text(y[0]+.06, y[1]+.05, r"$y$", color="#12457a",
+            fontsize=14, fontweight="bold")
+
+    ax.annotate("", xy=proj, xytext=(0, 0),
+                arrowprops=dict(arrowstyle="-|>", color="#3b7dd8", lw=2.6))
+    ax.text(proj[0]+.05, proj[1]-.22, r"$\hat{y}=X^T w^*$", color="#3b7dd8",
+            fontsize=13, fontweight="bold")
+
+    ax.plot([y[0], proj[0]], [y[1], proj[1]], "--", color="#d1495b", lw=2.2)
+    mid = (y + proj) / 2
+    ax.text(mid[0]+.09, mid[1], "residual\n(perpendicular)", color="#d1495b",
+            fontsize=10, fontweight="bold", va="center")
+
+    # right-angle marker at the projection point
+    n = np.array([-u[1], u[0]])
+    s = 0.17
+    corner = proj + n*s + u*s
+    ax.plot([proj[0]+u[0]*s, corner[0]], [proj[1]+u[1]*s, corner[1]],
+            color="#d1495b", lw=1.3)
+    ax.plot([proj[0]+n[0]*s, corner[0]], [proj[1]+n[1]*s, corner[1]],
+            color="#d1495b", lw=1.3)
+
+    ax.set_xlim(-0.4, 3.2); ax.set_ylim(-0.4, 2.8)
+    ax.set_aspect("equal")
+    ax.axhline(0, color="grey", lw=.6); ax.axvline(0, color="grey", lw=.6)
+    ax.legend(loc="lower right", fontsize=9)
+    ax.set_title("Least squares = orthogonal projection of $y$\n"
+                 r"residual $\perp$ subspace  $\Rightarrow$  $X(X^T w - y)=0$")
+    save(fig, "regression_projection.png")
+
+
+# ---------------------------------------------------------------------------
+# 7. Gradient descent on the (convex) squared-error surface
+# ---------------------------------------------------------------------------
+def fig_gradient_descent():
+    # 2-parameter least squares problem -> elliptical convex contours.
+    # The x-feature is centered so the problem is well conditioned and the
+    # descent path visibly reaches the optimum.
+    X = np.array([[1.0,  1.0, 1.0, 1.0],
+                  [-1.5, -0.5, 0.5, 1.5]])        # d=2, n=4
+    yv = np.array([1.0, 1.9, 3.2, 3.9])
+
+    def loss(w):
+        r = X.T @ w - yv
+        return r @ r
+
+    w_star = np.linalg.lstsq(X.T, yv, rcond=None)[0]
+
+    g1 = np.linspace(w_star[0]-3.2, w_star[0]+3.2, 260)
+    g2 = np.linspace(w_star[1]-2.0, w_star[1]+2.0, 260)
+    G1, G2 = np.meshgrid(g1, g2)
+    Z = np.empty_like(G1)
+    for i in range(G1.shape[0]):
+        for j in range(G1.shape[1]):
+            Z[i, j] = loss(np.array([G1[i, j], G2[i, j]]))
+
+    # run gradient descent
+    w = np.array([w_star[0]-2.8, w_star[1]+1.7])
+    eta = 0.06
+    path = [w.copy()]
+    for _ in range(22):
+        grad = 2 * X @ (X.T @ w - yv)
+        w = w - eta * grad
+        path.append(w.copy())
+    path = np.array(path)
+
+    fig, ax = plt.subplots(figsize=(6.6, 5.0))
+    cs = ax.contour(G1, G2, Z, levels=np.geomspace(Z.min()+.05, Z.max(), 14),
+                    cmap="Blues_r", linewidths=1.0)
+    ax.plot(path[:, 0], path[:, 1], "-o", color="#d1495b", ms=4.2, lw=1.7,
+            label="gradient descent path")
+    ax.scatter(*w_star, marker="*", s=340, color="#f4a300",
+               edgecolor="#7a5200", linewidth=1.0, zorder=6,
+               label="global optimum $w^*$")
+    ax.scatter(*path[0], s=70, color="#12457a", zorder=6, label="start $w^0$")
+    ax.set_xlabel("$w_1$"); ax.set_ylabel("$w_2$")
+    ax.set_title("Squared error is CONVEX -> single global minimum\n"
+                 r"$w^{(t+1)} = w^{(t)} - \eta\,\cdot 2X(X^T w^{(t)} - y)$")
+    ax.legend(loc="upper right", fontsize=9)
+    save(fig, "gradient_descent.png")
+
+
+# ---------------------------------------------------------------------------
+# 8. Kernel regression vs linear regression on non-linear data
+# ---------------------------------------------------------------------------
+def fig_kernel_regression():
+    n = 40
+    x = np.linspace(0, 1, n)
+    y_true = np.sin(2*np.pi*x)
+    y = y_true + rng.normal(0, 0.18, n)
+
+    # plain linear regression (with intercept)
+    A = np.c_[np.ones_like(x), x]
+    lin = A @ np.linalg.lstsq(A, y, rcond=None)[0]
+
+    # kernel regression with an RBF kernel:  alpha = (K + lam I)^-1 y
+    sigma, lam = 0.12, 1e-2
+    def rbf(a, b):
+        return np.exp(-(a[:, None] - b[None, :])**2 / (2*sigma**2))
+    K = rbf(x, x)
+    alpha = np.linalg.solve(K + lam*np.eye(n), y)
+
+    grid = np.linspace(0, 1, 300)
+    kern_pred = rbf(grid, x) @ alpha        # yhat(x) = sum_i alpha_i K(x_i, x)
+
+    fig, ax = plt.subplots(figsize=(6.8, 4.8))
+    ax.scatter(x, y, s=34, color="#12457a", alpha=.75, label="data", zorder=3)
+    ax.plot(x, lin, color="#d1495b", lw=2.2, ls="--",
+            label="linear regression (underfits)")
+    ax.plot(grid, kern_pred, color="#2a9d8f", lw=2.6,
+            label=r"kernel regression  $\sum_i \alpha_i K(x_i, x)$")
+    ax.plot(x, y_true, color="grey", lw=1.2, alpha=.7, label="true function")
+    ax.set_xlabel("$x$"); ax.set_ylabel("$y$")
+    ax.set_title("Kernel regression captures non-linear structure\n"
+                 r"$\alpha = K^{-1} y$   (K is $n \times n$)")
+    ax.legend(loc="upper right", fontsize=8.5)
+    ax.grid(alpha=.3)
+    save(fig, "kernel_regression.png")
+
+
 if __name__ == "__main__":
+    # Weeks 1-3
     fig_pca()
     fig_kernel_pca()
     fig_kmeans()
     fig_elbow()
+    # Week 5
+    fig_linear_regression()
+    fig_projection()
+    fig_gradient_descent()
+    fig_kernel_regression()
     print("done")
