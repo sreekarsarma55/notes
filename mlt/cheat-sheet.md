@@ -104,6 +104,42 @@ Jensen:
 
 ---
 
+## Linear Regression (Week 5)
+
+```text
+setup:         X is d × n (columns = points), y ∈ ℝⁿ, w ∈ ℝᵈ
+prediction:    ŷ = w^T x        all at once: ŷ = X^T w
+loss:          f(w) = ‖X^T w − y‖²
+gradient:      ∇f = 2X(X^T w − y)
+
+normal equations:
+    X X^T w = X y
+    w* = (X X^T)⁻¹ X y          (X X^T is d × d)
+    singular → infinitely many solutions, use pseudo-inverse
+
+geometric:     least squares = orthogonal projection of y
+               onto span of the rows of X
+               residual ⟂ subspace  ⇒  X(X^T w − y) = 0
+
+gradient descent:
+    w^(t+1) = w^(t) − η · 2X(X^T w^(t) − y)
+    convex ⇒ GLOBAL optimum  (contrast: K-means / EM = local)
+    η too large → diverges ; too small → slow
+    cost: closed form O(d³)  vs  GD O(nd) per step
+
+kernel regression:
+    w = Xα ,  K = X^T X  (n × n)
+    α = K⁻¹ y
+    ŷ(x) = Σᵢ αᵢ K(xᵢ, x)
+    d ↔ n trade-off, same as PCA vs Kernel PCA
+
+probabilistic view:
+    yᵢ = w^T xᵢ + εᵢ ,  εᵢ ~ N(0, σ²)
+    ⇒ MLE ≡ least squares   (why squared error is used)
+```
+
+---
+
 ## 🔢 Numbers Worth Remembering
 
 | Setup | Result |
