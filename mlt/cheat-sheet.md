@@ -249,6 +249,61 @@ generative vs discriminative:
 
 ---
 
+## Naive Bayes (Week 8)
+
+```text
+full generative model (binary x ∈ {0,1}ᵈ):
+    P(x|y) needs 2ᵈ − 1 parameters PER CLASS
+    total = 2(2ᵈ − 1) + 1        ← EXPONENTIAL, infeasible
+    MLE by counting ⇒ almost every x gets probability exactly 0
+
+chain rule (no assumption yet, still exponential):
+    P(x|y) = P(x₁|y) · P(x₂|x₁,y) · ... · P(x_d|x₁..x_{d−1},y)
+
+NAIVE BAYES assumption — conditional independence GIVEN y:
+    P(x|y) = Π_j P(xⱼ|y)
+    (NOT independence overall — only within each class)
+    total parameters = 2d + 1     ← LINEAR
+
+MLE (just counting, no optimization):
+    p̂    = n₁ / n
+    p̂ⱼ¹  = #(y=1 and xⱼ=1) / n₁
+    p̂ⱼ⁰  = #(y=0 and xⱼ=1) / n₀
+
+predict:  argmax_y  P(y) · Π_j P(xⱼ|y)
+    binary feature:  P(xⱼ|y) = (pⱼ^y)^{xⱼ} (1 − pⱼ^y)^{1−xⱼ}
+
+PITFALLS:
+    zero probability: scores are a PRODUCT ⇒ one 0 annihilates everything
+      Laplace (add-one):  p̂ⱼ^y = (count + 1)/(n_y + 2)
+      general (K values): (count + α)/(n_y + α·K)
+    independence usually FALSE ⇒ diagonal covariance only (axis-aligned)
+      probabilities miscalibrated, but the ARGMAX is often still right
+    underflow ⇒ work in log space:
+      log score(y) = log P(y) + Σ_j log P(xⱼ|y)
+
+DECISION FUNCTION IS LINEAR (binary features):
+    log[P(y=1|x)/P(y=0|x)] = w₀ + Σ_j wⱼ xⱼ
+
+              pⱼ¹ (1 − pⱼ⁰)
+    wⱼ = log ───────────────      ← log-odds ratio;  = 0 when pⱼ¹ = pⱼ⁰
+              pⱼ⁰ (1 − pⱼ¹)
+
+    w₀ = log[p/(1−p)] + Σ_j log[(1 − pⱼ¹)/(1 − pⱼ⁰)]
+
+    predict y = 1  ⇔  w^T x + w₀ > 0
+
+GAUSSIAN NAIVE BAYES (continuous x):
+    P(xⱼ|y) = N(xⱼ ; μⱼ^y, (σⱼ^y)²)   ⇒ DIAGONAL covariance
+    μ̂ⱼ^y, (σ̂ⱼ^y)² = mean/variance of feature j within class y
+    shared variances (σⱼ¹ = σⱼ⁰)  → xⱼ² CANCELS → LINEAR boundary
+                                     wⱼ = (μⱼ¹ − μⱼ⁰)/σⱼ²
+    per-class variances            → xⱼ² SURVIVES → QUADRATIC boundary
+    (mirrors LDA vs QDA)
+```
+
+---
+
 ## 🔢 Numbers Worth Remembering
 
 | Setup | Result |
