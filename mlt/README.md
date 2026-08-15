@@ -1,6 +1,6 @@
 # 🤖 Machine Learning Techniques (MLT)
 
-Revision notes for **MLT**: the unsupervised-learning and estimation block (Weeks 1–4, Quiz 1 scope) plus supervised regression (Week 5 onward).
+Revision notes for **MLT**: the unsupervised-learning and estimation block (Weeks 1–4, Quiz 1 scope), then supervised regression (Weeks 5–6) and classification (Week 7 onward).
 
 ## 📑 Contents
 
@@ -12,6 +12,7 @@ Revision notes for **MLT**: the unsupervised-learning and estimation block (Week
 | 4 | Estimation: MLE, Bayesian, GMM, EM | [`04-estimation-em.md`](04-estimation-em.md) |
 | 5 | Supervised Learning & Linear Regression | [`05-linear-regression.md`](05-linear-regression.md) |
 | 6 | Regularization: Ridge & Lasso | [`06-ridge-lasso.md`](06-ridge-lasso.md) |
+| 7 | Classification: KNN & Decision Trees | [`07-classification-knn-trees.md`](07-classification-knn-trees.md) |
 | ⚡ | **Cheat sheet** (last-minute formula recall) | [`cheat-sheet.md`](cheat-sheet.md) |
 | 📝 | **Mock test — 21 worked solutions** | [`mock-solutions.md`](mock-solutions.md) |
 
@@ -34,6 +35,9 @@ SUPERVISED (with labels y)
                                              (algebraic = geometric = probabilistic)
   Week  6    ── Regularization           ──  is least squares any good?
                                              → Ridge (ℓ2) and Lasso (ℓ1)
+  Week  7    ── Classification           ──  y ∈ {0,1} instead of ℝ
+                                             → KNN, Decision Trees
+                                             → generative vs discriminative
 ```
 
 Three recurring themes tie the weeks together:
