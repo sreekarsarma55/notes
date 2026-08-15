@@ -13,6 +13,7 @@ Revision notes for **MLT**: the unsupervised-learning and estimation block (Week
 | 5 | Supervised Learning & Linear Regression | [`05-linear-regression.md`](05-linear-regression.md) |
 | 6 | Regularization: Ridge & Lasso | [`06-ridge-lasso.md`](06-ridge-lasso.md) |
 | 7 | Classification: KNN & Decision Trees | [`07-classification-knn-trees.md`](07-classification-knn-trees.md) |
+| 8 | Naive Bayes | [`08-naive-bayes.md`](08-naive-bayes.md) |
 | ⚡ | **Cheat sheet** (last-minute formula recall) | [`cheat-sheet.md`](cheat-sheet.md) |
 | 📝 | **Mock test — 21 worked solutions** | [`mock-solutions.md`](mock-solutions.md) |
 
@@ -38,13 +39,17 @@ SUPERVISED (with labels y)
   Week  7    ── Classification           ──  y ∈ {0,1} instead of ℝ
                                              → KNN, Decision Trees
                                              → generative vs discriminative
+  Week  8    ── Generative classifier    ──  the full model needs 2ᵈ parameters
+                                             → Naive Bayes (2d+1), and its
+                                               boundary turns out to be LINEAR
 ```
 
-Three recurring themes tie the weeks together:
+Four recurring themes tie the weeks together:
 
 - **The kernel trick** — introduced for PCA (Week 2), reused for regression (Week 5). Cost flips from depending on `d` to depending on `n`.
-- **MLE** — introduced in Week 4; it justifies the squared-error loss in Week 5.
+- **MLE** — introduced in Week 4; it justifies the squared-error loss in Week 5 and every parameter estimate in Week 8.
 - **Bayesian priors** — introduced in Week 4; a Gaussian prior on `w` gives ridge and a Laplace prior gives lasso in Week 6.
+- **Bayes' rule for classification** — set up in Week 7.5 and turned into a real algorithm in Week 8.
 
 ## 🖼️ Figures
 
