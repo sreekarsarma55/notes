@@ -308,6 +308,187 @@ def fig_kernel_regression():
     save(fig, "kernel_regression.png")
 
 
+# ---------------------------------------------------------------------------
+# 9. K-fold cross-validation schematic
+# ---------------------------------------------------------------------------
+def fig_cross_validation():
+    K = 5
+    fig, ax = plt.subplots(figsize=(7.2, 3.6))
+    for row in range(K):
+        for col in range(K):
+            is_val = (col == row)
+            ax.add_patch(plt.Rectangle(
+                (col, K - 1 - row), 1, 0.8,
+                facecolor="#e9a13b" if is_val else "#cfe0f5",
+                edgecolor="white", linewidth=2))
+            if is_val:
+                ax.text(col + .5, K - 1 - row + .4, "val", ha="center",
+                        va="center", fontsize=9, fontweight="bold",
+                        color="#5c3a00")
+            else:
+                ax.text(col + .5, K - 1 - row + .4, "train", ha="center",
+                        va="center", fontsize=8.5, color="#24486f")
+        ax.text(-0.18, K - 1 - row + .4, f"split {row+1}", ha="right",
+                va="center", fontsize=9.5)
+
+    ax.set_xlim(-1.5, K + .1); ax.set_ylim(-0.35, K)
+    ax.axis("off")
+    ax.set_title("5-fold cross-validation: every fold is the validation set exactly once\n"
+                 "CV error = average of the K validation errors  →  used to choose λ",
+                 fontsize=11)
+    save(fig, "cross_validation.png")
+
+
+# ---------------------------------------------------------------------------
+# 10. Ridge MSE vs lambda: bias-variance trade-off beating the MLE
+# ---------------------------------------------------------------------------
+def fig_ridge_mse():
+    # eigenvalues of X X^T -- one direction is badly determined
+    eig = np.array([4.0, 0.1])
+    alpha = np.array([1.0, 1.0])          # true w in the eigenbasis
+    sigma2 = 1.0
+
+    lam = np.linspace(0, 6, 600)
+    var = np.array([np.sum(sigma2*eig / (eig + L)**2) for L in lam])
+    bias2 = np.array([np.sum(L**2 * alpha**2 / (eig + L)**2) for L in lam])
+    mse = var + bias2
+
+    mle_mse = sigma2 * np.sum(1.0/eig)
+    best = int(np.argmin(mse))
+
+    fig, ax = plt.subplots(figsize=(6.8, 4.8))
+    ax.plot(lam, var, color="#3b7dd8", lw=2, ls="--", label="variance")
+    ax.plot(lam, bias2, color="#e9a13b", lw=2, ls="--", label="bias$^2$")
+    ax.plot(lam, mse, color="#d1495b", lw=2.8, label="MSE = bias$^2$ + variance")
+    ax.axhline(mle_mse, color="grey", lw=1.6, ls=":",
+               label=f"MSE of least squares = {mle_mse:.2f}")
+    ax.scatter([lam[best]], [mse[best]], marker="*", s=340, color="#f4a300",
+               edgecolor="#7a5200", linewidth=1.0, zorder=6,
+               label=f"best λ ≈ {lam[best]:.2f}")
+
+    ax.set_xlabel("regularization strength  λ")
+    ax.set_ylabel("error")
+    ax.set_ylim(0, mle_mse*1.15)
+    ax.set_title("Ridge trades a little bias for a large drop in variance\n"
+                 "there is always some λ > 0 that beats least squares",
+                 fontsize=11)
+    ax.legend(loc="upper right", fontsize=8.5)
+    ax.grid(alpha=.3)
+    save(fig, "ridge_mse_lambda.png")
+
+
+# ---------------------------------------------------------------------------
+# 11. Why L1 gives sparsity: diamond corners vs round circle
+# ---------------------------------------------------------------------------
+def fig_l1_l2_geometry():
+    # quadratic loss  (w - c)^T A (w - c)
+    c = np.array([2.3, 0.85])
+    A = np.array([[1.0, 0.28], [0.28, 0.75]])
+
+    def loss(W1, W2):
+        D1, D2 = W1 - c[0], W2 - c[1]
+        return (A[0, 0]*D1**2 + 2*A[0, 1]*D1*D2 + A[1, 1]*D2**2)
+
+    t = 1.15                                  # budget
+    g = np.linspace(-1.2, 3.4, 420)
+    h = np.linspace(-1.6, 2.3, 420)
+    G, H = np.meshgrid(g, h)
+    Z = loss(G, H)
+
+    # numerically find the constrained optimum on each boundary
+    th = np.linspace(0, 2*np.pi, 4000)
+    circ = np.c_[t*np.cos(th), t*np.sin(th)]
+    s = np.linspace(-1, 1, 4000)
+    dia = np.concatenate([np.c_[s*t, (1-np.abs(s))*t],
+                          np.c_[s*t, -(1-np.abs(s))*t]])
+    best_c = circ[np.argmin(loss(circ[:, 0], circ[:, 1]))]
+    best_d = dia[np.argmin(loss(dia[:, 0], dia[:, 1]))]
+
+    fig, axes = plt.subplots(1, 2, figsize=(11.4, 5.0))
+    for ax, region, sol, name, extra in [
+            (axes[0], dia, best_d, "Lasso  ($\\ell_1$): diamond",
+             "corner on the axis  →  $w_2 = 0$  (SPARSE)"),
+            (axes[1], circ, best_c, "Ridge  ($\\ell_2$): circle",
+             "smooth touch point  →  both weights nonzero")]:
+        ax.contour(G, H, Z, levels=np.linspace(0.06, 6.5, 11),
+                   cmap="Blues_r", linewidths=.9)
+        ax.contour(G, H, Z, levels=[loss(*sol)], colors="#3b7dd8",
+                   linewidths=2.4)
+        if name.startswith("Lasso"):
+            poly = np.array([[t, 0], [0, t], [-t, 0], [0, -t]])
+        else:
+            poly = circ
+        ax.add_patch(plt.Polygon(poly, closed=True, facecolor="#2a9d8f",
+                                 alpha=.22, edgecolor="#2a9d8f", lw=2.4))
+        ax.scatter(*c, marker="+", s=170, color="#12457a", linewidth=2.4,
+                   zorder=6)
+        ax.text(c[0]+.1, c[1]+.12, r"$w_{ML}$", color="#12457a",
+                fontsize=12, fontweight="bold")
+        ax.scatter(*sol, s=110, color="#d1495b", zorder=7, edgecolor="white",
+                   linewidth=1.2)
+        ax.text(sol[0]+.14, sol[1]-.30, "solution", color="#d1495b",
+                fontsize=10.5, fontweight="bold")
+        ax.axhline(0, color="grey", lw=.7); ax.axvline(0, color="grey", lw=.7)
+        ax.set_aspect("equal")
+        ax.set_xlim(-1.2, 3.4); ax.set_ylim(-1.6, 2.3)
+        ax.set_xlabel("$w_1$"); ax.set_ylabel("$w_2$")
+        ax.set_title(f"{name}\n{extra}", fontsize=10.5)
+    fig.suptitle("Same loss contours, different constraint shape", fontsize=12)
+    save(fig, "l1_l2_geometry.png")
+
+
+# ---------------------------------------------------------------------------
+# 12. Coefficient paths: ridge shrinks smoothly, lasso zeroes out
+# ---------------------------------------------------------------------------
+def fig_coefficient_paths():
+    # design with correlated + irrelevant features
+    n, d = 60, 6
+    Xr = rng.normal(size=(n, d))
+    Xr[:, 1] = Xr[:, 0]*0.85 + rng.normal(0, .35, n)     # correlated pair
+    w_true = np.array([2.4, 0.0, -1.6, 0.0, 0.0, 0.9])
+    yv = Xr @ w_true + rng.normal(0, .6, n)
+
+    lams = np.geomspace(1e-2, 1e3, 90)
+
+    ridge = np.array([
+        np.linalg.solve(Xr.T @ Xr + L*np.eye(d), Xr.T @ yv) for L in lams])
+
+    def lasso_cd(A, b, lam, iters=600):
+        """coordinate descent for 0.5||Aw-b||^2 + lam*||w||_1"""
+        w = np.zeros(A.shape[1])
+        norms = (A**2).sum(axis=0)
+        for _ in range(iters):
+            for j in range(A.shape[1]):
+                if norms[j] == 0:
+                    continue
+                r = b - A @ w + A[:, j]*w[j]
+                z = A[:, j] @ r
+                w[j] = np.sign(z)*max(abs(z) - lam, 0.0)/norms[j]
+        return w
+
+    lasso = np.array([lasso_cd(Xr, yv, L) for L in lams])
+
+    fig, axes = plt.subplots(1, 2, figsize=(11.6, 4.6), sharey=True)
+    colors = plt.cm.tab10(np.arange(d))
+    for ax, path, name, note in [
+            (axes[0], ridge, "Ridge ($\\ell_2$)",
+             "coefficients shrink smoothly, never reach 0"),
+            (axes[1], lasso, "Lasso ($\\ell_1$)",
+             "coefficients hit EXACTLY 0 one by one")]:
+        for j in range(d):
+            ax.plot(lams, path[:, j], color=colors[j], lw=2,
+                    label=f"$w_{j+1}$")
+        ax.set_xscale("log")
+        ax.axhline(0, color="black", lw=1.1, ls=":")
+        ax.set_xlabel("λ  (log scale)")
+        ax.set_title(f"{name}\n{note}", fontsize=10.5)
+        ax.grid(alpha=.3)
+    axes[0].set_ylabel("coefficient value")
+    axes[1].legend(fontsize=8, ncol=2, loc="upper right")
+    fig.suptitle("Coefficient paths as regularization increases", fontsize=12)
+    save(fig, "ridge_lasso_paths.png")
+
+
 if __name__ == "__main__":
     # Weeks 1-3
     fig_pca()
@@ -319,4 +500,9 @@ if __name__ == "__main__":
     fig_projection()
     fig_gradient_descent()
     fig_kernel_regression()
+    # Week 6
+    fig_cross_validation()
+    fig_ridge_mse()
+    fig_l1_l2_geometry()
+    fig_coefficient_paths()
     print("done")
