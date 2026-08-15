@@ -489,6 +489,273 @@ def fig_coefficient_paths():
     save(fig, "ridge_lasso_paths.png")
 
 
+# ---------------------------------------------------------------------------
+# 13. KNN decision boundary: small k (jagged) vs large k (smooth)
+# ---------------------------------------------------------------------------
+def _knn_predict(train_X, train_y, query, k):
+    """Majority vote over the k nearest neighbours (ties -> class 1)."""
+    d2 = ((query[:, None, :] - train_X[None, :, :])**2).sum(axis=2)
+    idx = np.argsort(d2, axis=1)[:, :k]
+    votes = train_y[idx].sum(axis=1)
+    return (votes > k/2).astype(int)
+
+
+def fig_knn_boundary():
+    n = 60
+    A = rng.normal([-1.1, -0.6], 0.95, size=(n, 2))
+    B = rng.normal([1.3, 0.9], 0.95, size=(n, 2))
+    Xd = np.vstack([A, B])
+    yd = np.r_[np.zeros(n, int), np.ones(n, int)]
+
+    # a little LABEL NOISE (realistic) -- this is what k=1 overfits to,
+    # producing isolated islands, while a larger k averages it away.
+    flip = rng.choice(len(yd), size=9, replace=False)
+    yd = yd.copy()
+    yd[flip] = 1 - yd[flip]
+    A, B = Xd[yd == 0], Xd[yd == 1]
+
+    g = np.linspace(-4.2, 4.6, 240)
+    h = np.linspace(-3.8, 4.4, 240)
+    G, H = np.meshgrid(g, h)
+    grid = np.c_[G.ravel(), H.ravel()]
+
+    fig, axes = plt.subplots(1, 2, figsize=(11.4, 4.9))
+    for ax, k, note in [
+            (axes[0], 1, "islands around every noisy point\ntraining error = 0, HIGH variance -> OVERFITS"),
+            (axes[1], 25, "noise averaged away, smooth boundary\nhigher bias, LOW variance")]:
+        Z = _knn_predict(Xd, yd, grid, k).reshape(G.shape)
+        ax.contourf(G, H, Z, levels=[-.5, .5, 1.5],
+                    colors=["#cfe0f5", "#f8ddb0"], alpha=.85)
+        ax.contour(G, H, Z, levels=[.5], colors="#d1495b", linewidths=2.0)
+        ax.scatter(A[:, 0], A[:, 1], s=26, color="#12457a",
+                   edgecolor="white", linewidth=.6, label="class 0")
+        ax.scatter(B[:, 0], B[:, 1], s=26, color="#c07800", marker="s",
+                   edgecolor="white", linewidth=.6, label="class 1")
+        ax.set_title(f"k = {k}\n{note}", fontsize=10.5)
+        ax.set_xlabel("$x_1$"); ax.set_ylabel("$x_2$")
+        ax.set_xlim(g[0], g[-1]); ax.set_ylim(h[0], h[-1])
+    axes[0].legend(loc="lower right", fontsize=8.5, framealpha=.95)
+    fig.suptitle("k controls the bias-variance trade-off in KNN", fontsize=12)
+    save(fig, "knn_decision_boundary.png")
+
+
+# ---------------------------------------------------------------------------
+# 14. Curse of dimensionality: distances concentrate as d grows
+# ---------------------------------------------------------------------------
+def fig_curse_of_dimensionality():
+    n = 500
+
+    def dists(d, seed):
+        r = np.random.default_rng(seed)
+        P = r.random((n, d))
+        q = r.random(d)
+        return np.sqrt(((P - q)**2).sum(axis=1))
+
+    fig, axes = plt.subplots(1, 2, figsize=(11.6, 4.5))
+
+    # ---- left: the distance DISTRIBUTION collapses to a spike ----
+    ax = axes[0]
+    for d, c, lbl in [(2, "#3b7dd8", "d = 2"), (10, "#2a9d8f", "d = 10"),
+                      (500, "#d1495b", "d = 500")]:
+        dd = dists(d, 11)
+        dd = dd / dd.mean()                    # normalise so scales compare
+        ax.hist(dd, bins=45, density=True, alpha=.55, color=c, label=lbl)
+    ax.axvline(1.0, color="grey", lw=.9, ls=":")
+    ax.set_xlabel("distance to the query  (divided by the mean distance)")
+    ax.set_ylabel("density")
+    ax.set_xlim(0, 2.1)
+    ax.set_title("Distances CONCENTRATE around their mean\n"
+                 "in high d every point is about equally far away",
+                 fontsize=10.5)
+    ax.legend(fontsize=9)
+
+    # ---- right: the relative gap decays to 0 ----
+    ax = axes[1]
+    dims = np.unique(np.geomspace(2, 2000, 30).astype(int))
+    trials = 40
+    gap = []
+    for d in dims:
+        v = [(lambda x: (x.max() - x.min())/x.min())(dists(d, 1000 + d*97 + t))
+             for t in range(trials)]
+        gap.append(np.median(v))               # median: robust to outliers
+
+    ax.plot(dims, gap, "-o", color="#3b7dd8", lw=2, ms=4.5)
+    ax.set_xscale("log"); ax.set_yscale("log")
+    ax.set_xlabel("number of dimensions  d  (log scale)")
+    ax.set_ylabel(r"$(d_{max} - d_{min})\,/\,d_{min}$")
+    ax.set_title("The relative gap between nearest and farthest\n"
+                 r"shrinks toward 0  $\Rightarrow$  'nearest' loses meaning",
+                 fontsize=10.5)
+    ax.grid(alpha=.3, which="both")
+    save(fig, "curse_of_dimensionality.png")
+
+
+# ---------------------------------------------------------------------------
+# 15. Impurity measures: entropy and Gini vs class proportion
+# ---------------------------------------------------------------------------
+def fig_entropy_curve():
+    p = np.linspace(1e-9, 1 - 1e-9, 600)
+    H = -p*np.log2(p) - (1-p)*np.log2(1-p)
+    gini = 2*p*(1-p)
+
+    fig, ax = plt.subplots(figsize=(6.6, 4.6))
+    ax.plot(p, H, color="#3b7dd8", lw=2.6, label=r"entropy  $H(p)$  (bits)")
+    ax.plot(p, gini, color="#2a9d8f", lw=2.4, ls="--",
+            label=r"Gini  $2p(1-p)$")
+    ax.axvline(.5, color="grey", lw=.9, ls=":")
+    ax.scatter([.5], [1.0], s=110, color="#d1495b", zorder=6)
+    ax.annotate("maximally mixed\n$p=0.5$, $H=1$ bit", xy=(.5, 1.0),
+                xytext=(.60, .72), color="#d1495b", fontsize=9.5,
+                fontweight="bold",
+                arrowprops=dict(arrowstyle="-|>", color="#d1495b"))
+    for x0, lbl in [(0.0, "pure\n$H=0$"), (1.0, "pure\n$H=0$")]:
+        ax.annotate(lbl, xy=(x0, 0), xytext=(x0 + (.06 if x0 == 0 else -.14), .18),
+                    color="#12457a", fontsize=9.5, fontweight="bold",
+                    arrowprops=dict(arrowstyle="-|>", color="#12457a"))
+    ax.set_xlabel("fraction of positives in the node,  $p$")
+    ax.set_ylabel("impurity")
+    ax.set_ylim(0, 1.12)
+    ax.set_title("Impurity is highest for a 50/50 node, zero for a pure node\n"
+                 "splits are chosen to reduce it the most (information gain)",
+                 fontsize=11)
+    ax.legend(loc="lower center", fontsize=9)
+    ax.grid(alpha=.3)
+    save(fig, "entropy_curve.png")
+
+
+# ---------------------------------------------------------------------------
+# 16. Decision tree: axis-parallel partition and the matching tree
+# ---------------------------------------------------------------------------
+def fig_decision_tree_partition():
+    # explicit tree so the partition and the diagram agree exactly:
+    #   root:  x1 <= 5
+    #     yes:  x2 <= 3  ->  +   else  -
+    #     no :  x2 <= 6  ->  -   else  +
+    regions = [((0, 5), (0, 3), "+"), ((0, 5), (3, 10), "\u2212"),
+               ((5, 10), (0, 6), "\u2212"), ((5, 10), (6, 10), "+")]
+    col = {"+": "#cfe0f5", "\u2212": "#f8ddb0"}
+
+    fig, axes = plt.subplots(1, 2, figsize=(12.0, 5.0),
+                             gridspec_kw={"width_ratios": [1, 1.12]})
+
+    # ---- left: feature space ----
+    ax = axes[0]
+    for (x0, x1), (y0, y1), lab in regions:
+        ax.add_patch(plt.Rectangle((x0, y0), x1-x0, y1-y0,
+                                   facecolor=col[lab], edgecolor="none"))
+        ax.text((x0+x1)/2, (y0+y1)/2, lab, ha="center", va="center",
+                fontsize=22, fontweight="bold",
+                color="#12457a" if lab == "+" else "#8a5300")
+    # sample points consistent with the regions
+    for (x0, x1), (y0, y1), lab in regions:
+        pts = np.c_[rng.uniform(x0+.4, x1-.4, 9), rng.uniform(y0+.4, y1-.4, 9)]
+        ax.scatter(pts[:, 0], pts[:, 1], s=22,
+                   color="#12457a" if lab == "+" else "#c07800",
+                   marker="o" if lab == "+" else "s",
+                   edgecolor="white", linewidth=.6, zorder=4)
+    ax.plot([5, 5], [0, 10], color="#d1495b", lw=2.6)
+    ax.plot([0, 5], [3, 3], color="#d1495b", lw=2.6)
+    ax.plot([5, 10], [6, 6], color="#d1495b", lw=2.6)
+    ax.text(5.15, 9.5, "$x_1=5$", color="#d1495b", fontsize=11, fontweight="bold")
+    ax.text(.2, 3.2, "$x_2=3$", color="#d1495b", fontsize=11, fontweight="bold")
+    ax.text(9.8, 6.2, "$x_2=6$", color="#d1495b", fontsize=11,
+            fontweight="bold", ha="right")
+    ax.set_xlim(0, 10); ax.set_ylim(0, 10)
+    ax.set_xlabel("$x_1$"); ax.set_ylabel("$x_2$")
+    ax.set_title("Every split is AXIS-PARALLEL\n-> the space becomes rectangles",
+                 fontsize=10.5)
+
+    # ---- right: the tree ----
+    ax = axes[1]
+    ax.axis("off")
+    ax.set_xlim(-0.2, 10.2); ax.set_ylim(0.8, 10)
+
+    def node(x, y, txt, kind, fs=11):
+        face = {"test": "#e8eef7", "+": "#cfe0f5", "\u2212": "#f8ddb0"}[kind]
+        edge = {"test": "#3b7dd8", "+": "#12457a", "\u2212": "#c07800"}[kind]
+        ax.add_patch(plt.Rectangle((x-1.15, y-.52), 2.3, 1.04,
+                                   facecolor=face, edgecolor=edge,
+                                   linewidth=1.8, zorder=3,
+                                   joinstyle="round"))
+        ax.text(x, y, txt, ha="center", va="center", fontsize=fs,
+                fontweight="bold", zorder=4,
+                color=edge if kind != "test" else "#12457a")
+
+    def edge(x0, y0, x1, y1, lab, dx):
+        ax.plot([x0, x1], [y0-.52, y1+.52], color="#7f8fa6", lw=1.6, zorder=2)
+        ax.text((x0+x1)/2 + dx, (y0+y1)/2, lab, fontsize=9.5,
+                color="#4a5a6a", fontweight="bold", ha="center")
+
+    M = "\u2212"
+    node(5, 8.8, "$x_1 \\leq 5$ ?", "test")
+    node(2.4, 5.6, "$x_2 \\leq 3$ ?", "test")
+    node(7.6, 5.6, "$x_2 \\leq 6$ ?", "test")
+    node(1.3, 2.2, "+", "+", 17); node(3.9, 2.2, M, M, 17)
+    node(6.1, 2.2, M, M, 17); node(8.7, 2.2, "+", "+", 17)
+    edge(5, 8.8, 2.4, 5.6, "yes", -.45); edge(5, 8.8, 7.6, 5.6, "no", .45)
+    edge(2.4, 5.6, 1.3, 2.2, "yes", -.42); edge(2.4, 5.6, 3.9, 2.2, "no", .42)
+    edge(7.6, 5.6, 6.1, 2.2, "yes", -.42); edge(7.6, 5.6, 8.7, 2.2, "no", .42)
+    ax.set_title("The same model as a tree\nprediction = walk root -> leaf,  $O(depth)$",
+                 fontsize=10.5)
+    save(fig, "decision_tree_partition.png")
+
+
+# ---------------------------------------------------------------------------
+# 17. Generative vs discriminative
+# ---------------------------------------------------------------------------
+def fig_generative_vs_discriminative():
+    n = 90
+    m0, m1 = np.array([-1.25, -0.5]), np.array([1.3, 1.0])
+    C = np.array([[1.05, 0.35], [0.35, 0.75]])
+    L = np.linalg.cholesky(C)
+    A = m0 + rng.normal(size=(n, 2)) @ L.T
+    B = m1 + rng.normal(size=(n, 2)) @ L.T
+
+    g = np.linspace(-4.4, 4.6, 300)
+    h = np.linspace(-3.6, 4.2, 300)
+    G, H = np.meshgrid(g, h)
+    grid = np.c_[G.ravel(), H.ravel()]
+
+    Cinv = np.linalg.inv(C)
+
+    def dens(mu):
+        D = grid - mu
+        return np.exp(-.5*np.einsum('ij,jk,ik->i', D, Cinv, D)).reshape(G.shape)
+
+    d0, d1 = dens(m0), dens(m1)
+
+    fig, axes = plt.subplots(1, 2, figsize=(11.6, 5.0))
+
+    ax = axes[0]
+    ax.contour(G, H, d0, levels=[.12, .35, .7], colors="#12457a", linewidths=1.7)
+    ax.contour(G, H, d1, levels=[.12, .35, .7], colors="#c07800", linewidths=1.7)
+    ax.scatter(A[:, 0], A[:, 1], s=20, color="#12457a", alpha=.65)
+    ax.scatter(B[:, 0], B[:, 1], s=20, color="#c07800", marker="s", alpha=.65)
+    ax.text(m0[0], m0[1]-2.35, r"$P(x \mid y=0)$", color="#12457a",
+            fontsize=11.5, fontweight="bold", ha="center")
+    ax.text(m1[0]+.5, m1[1]+2.05, r"$P(x \mid y=1)$", color="#c07800",
+            fontsize=11.5, fontweight="bold", ha="center")
+    ax.set_title("GENERATIVE\nmodels each class density $P(x\\mid y)$ and $P(y)$\n"
+                 "-> can SAMPLE new data", fontsize=10.5)
+
+    ax = axes[1]
+    Z = (d1*0.5 > d0*0.5).astype(float)
+    ax.contourf(G, H, Z, levels=[-.5, .5, 1.5],
+                colors=["#cfe0f5", "#f8ddb0"], alpha=.75)
+    ax.contour(G, H, Z, levels=[.5], colors="#d1495b", linewidths=2.6)
+    ax.scatter(A[:, 0], A[:, 1], s=20, color="#12457a", alpha=.65)
+    ax.scatter(B[:, 0], B[:, 1], s=20, color="#c07800", marker="s", alpha=.65)
+    ax.text(-3.9, 3.5, "decision boundary\nonly", color="#d1495b",
+            fontsize=11, fontweight="bold")
+    ax.set_title("DISCRIMINATIVE\nmodels $P(y \\mid x)$ / the boundary directly\n"
+                 "-> cannot generate data", fontsize=10.5)
+
+    for ax in axes:
+        ax.set_xlim(g[0], g[-1]); ax.set_ylim(h[0], h[-1])
+        ax.set_xlabel("$x_1$"); ax.set_ylabel("$x_2$")
+    save(fig, "generative_vs_discriminative.png")
+
+
 if __name__ == "__main__":
     # Weeks 1-3
     fig_pca()
@@ -505,4 +772,10 @@ if __name__ == "__main__":
     fig_ridge_mse()
     fig_l1_l2_geometry()
     fig_coefficient_paths()
+    # Week 7
+    fig_knn_boundary()
+    fig_curse_of_dimensionality()
+    fig_entropy_curve()
+    fig_decision_tree_partition()
+    fig_generative_vs_discriminative()
     print("done")

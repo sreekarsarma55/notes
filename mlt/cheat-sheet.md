@@ -195,6 +195,60 @@ lasso (ℓ1):
 
 ---
 
+## Classification: KNN & Trees (Week 7)
+
+```text
+binary classification:
+    y ∈ {0,1},  learn h : ℝᵈ → {0,1}
+    0-1 loss:  error(h) = (1/n) Σᵢ 𝟙(h(xᵢ) ≠ yᵢ)
+    NON-convex + NON-differentiable ⇒ NO gradient descent
+    number of classifiers on d binary features = 2^(2ᵈ)
+    Bayes optimal:  h*(x) = argmax_y P(y | x)   (Bayes error = irreducible floor)
+
+KNN:
+    training: store the data (LAZY learner, non-parametric)
+    predict:  k nearest points → MAJORITY vote
+    cost:  train O(1),  PREDICT O(nd) per query,  storage O(nd)
+    k = 1  → training error 0, jagged, HIGH variance, overfits
+    large k → smooth, high bias, low variance ;  k = n → majority class
+    choose k by cross-validation (use ODD k for binary)
+    k = 1 boundary = Voronoi cells → PIECEWISE LINEAR
+    MUST normalise features (Euclidean distance is scale-sensitive)
+    curse of dimensionality: (d_max − d_min)/d_min → 0 as d → ∞
+    Cover-Hart: 1-NN error ≤ 2 × Bayes error as n → ∞
+
+decision trees:
+    internal node = test on one feature, leaf = label
+    predict = walk root → leaf, O(depth) ; boundaries AXIS-PARALLEL
+    entropy:  H(p) = −p log₂p − (1−p) log₂(1−p)
+              H = 0 pure ;  H = 1 bit at p = 0.5 (max)
+    Gini:     1 − Σ_c p_c²  =  2p(1−p)  for binary
+    information gain:
+        IG = H(parent) − Σ_children (|Dᵥ|/|D|) · H(Dᵥ)
+        pick the split with MAX IG ;  IG ≥ 0 always
+    numeric feature: candidate thresholds = midpoints of sorted values
+    GREEDY (ID3/CART) → not globally optimal ; optimal tree is NP-hard
+    overfits: full tree → 0 training error
+    fixes: max depth, min samples/leaf, min gain, PRUNING (tune by CV)
+
+generative vs discriminative:
+    generative:      model P(x|y) and P(y), classify by Bayes
+                     h(x) = argmax_y P(x|y) P(y)
+                     CAN generate new data
+                     e.g. Naive Bayes, GMM, LDA
+    discriminative:  model P(y|x) or h(x) directly, CANNOT generate
+                     e.g. logistic regression, SVM, trees, KNN
+```
+
+| | Generative | Discriminative |
+|--|-----------|----------------|
+| models | `P(x\|y)`, `P(y)` | `P(y\|x)` |
+| generate data | ✅ | ❌ |
+| assumptions | stronger | weaker |
+| better with | small data | large data |
+
+---
+
 ## 🔢 Numbers Worth Remembering
 
 | Setup | Result |
