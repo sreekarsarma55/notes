@@ -11,6 +11,7 @@ Revision notes for **MLT**: the unsupervised-learning and estimation block (Week
 | 3 | Clustering & K-means | [`03-clustering-kmeans.md`](03-clustering-kmeans.md) |
 | 4 | Estimation: MLE, Bayesian, GMM, EM | [`04-estimation-em.md`](04-estimation-em.md) |
 | 5 | Supervised Learning & Linear Regression | [`05-linear-regression.md`](05-linear-regression.md) |
+| 6 | Regularization: Ridge & Lasso | [`06-ridge-lasso.md`](06-ridge-lasso.md) |
 | ⚡ | **Cheat sheet** (last-minute formula recall) | [`cheat-sheet.md`](cheat-sheet.md) |
 | 📝 | **Mock test — 21 worked solutions** | [`mock-solutions.md`](mock-solutions.md) |
 
@@ -31,12 +32,15 @@ UNSUPERVISED (no labels)
 SUPERVISED (with labels y)
   Week  5    ── Regression               ──  Linear regression → Kernel regression
                                              (algebraic = geometric = probabilistic)
+  Week  6    ── Regularization           ──  is least squares any good?
+                                             → Ridge (ℓ2) and Lasso (ℓ1)
 ```
 
-Two recurring themes tie the weeks together:
+Three recurring themes tie the weeks together:
 
 - **The kernel trick** — introduced for PCA (Week 2), reused for regression (Week 5). Cost flips from depending on `d` to depending on `n`.
-- **MLE** — introduced in Week 4, and it is what justifies the squared-error loss in Week 5.
+- **MLE** — introduced in Week 4; it justifies the squared-error loss in Week 5.
+- **Bayesian priors** — introduced in Week 4; a Gaussian prior on `w` gives ridge and a Laplace prior gives lasso in Week 6.
 
 ## 🖼️ Figures
 

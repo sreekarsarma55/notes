@@ -140,6 +140,61 @@ probabilistic view:
 
 ---
 
+## Ridge & Lasso (Week 6)
+
+```text
+goodness of the MLE:
+    w_ML is UNBIASED:  E[w_ML] = w
+    MSE(w_ML) = σ² · tr((X X^T)⁻¹) = σ² Σᵢ 1/λᵢ
+    small λᵢ  ⇒  MSE explodes  (collinear features, d ≳ n)
+    achieves Cramér-Rao bound ⇒ best UNBIASED
+    but a BIASED estimator can have lower MSE  → ridge
+
+cross-validation:
+    K-fold: train on K−1 folds, validate on the held-out fold, average
+    LOOCV = K = n
+    used to CHOOSE λ  (never pick λ by training error)
+
+Bayesian view:
+    prior w ~ N(0, γ² I),  likelihood y|w ~ N(X^T w, σ² I)
+    MAP  ⇒  minimize ‖X^T w − y‖² + (σ²/γ²)‖w‖²
+    ⇒ RIDGE with  λ = σ²/γ²
+
+ridge (ℓ2):
+    minimize ‖X^T w − y‖² + λ‖w‖²
+    w_ridge = (X X^T + λI)⁻¹ X y
+    eigenvalues become λᵢ + λ > 0  ⇒  ALWAYS invertible, unique
+                                      (works even when d > n)
+    λ → 0 ⇒ w_ML ;  λ → ∞ ⇒ 0
+
+ridge vs least squares (eigenbasis, X X^T = Q Λ Q^T):
+    w_ridge = Q (Λ + λI)⁻¹ Λ Q^T w_ML
+    per coordinate:   βᵢ = [λᵢ / (λᵢ + λ)] · αᵢ
+    small λᵢ → shrunk MOST (exactly the noisy directions)
+    MSE(λ) = Σᵢ [ σ²λᵢ/(λᵢ+λ)²  +  λ²αᵢ²/(λᵢ+λ)² ]
+                  └variance┘        └─bias²─┘
+    THEOREM: ∃ λ > 0 with MSE(w_ridge) < MSE(w_ML)
+
+lasso (ℓ1):
+    minimize ‖X^T w − y‖² + λ‖w‖₁
+    NO closed form (|w| not differentiable at 0) → iterative
+    orthonormal case (X X^T = I), soft-thresholding:
+        (w_lasso)ᵢ = sign((w_ML)ᵢ) · max(|(w_ML)ᵢ| − λ/2, 0)
+        (w_ridge)ᵢ = (w_ML)ᵢ / (1 + λ)
+    SPARSE: coefficients become exactly 0 → feature selection
+    why: ℓ1 ball is a DIAMOND, corners sit on the axes
+    lasso ⇔ Laplace prior ;  ridge ⇔ Gaussian prior
+```
+
+| | Ridge (ℓ2) | Lasso (ℓ1) |
+|--|-----------|------------|
+| closed form | ✅ | ❌ |
+| sparsity | ❌ | ✅ |
+| prior | Gaussian | Laplace |
+| shape | circle | diamond |
+
+---
+
 ## 🔢 Numbers Worth Remembering
 
 | Setup | Result |
