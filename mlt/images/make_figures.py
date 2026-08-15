@@ -756,6 +756,175 @@ def fig_generative_vs_discriminative():
     save(fig, "generative_vs_discriminative.png")
 
 
+# ---------------------------------------------------------------------------
+# 18. Parameter explosion: full generative model vs Naive Bayes
+# ---------------------------------------------------------------------------
+def fig_nb_parameter_explosion():
+    d = np.arange(1, 31)
+    full = 2*(2.0**d - 1) + 1
+    nb = 2*d + 1
+
+    fig, ax = plt.subplots(figsize=(6.8, 4.7))
+    ax.plot(d, full, "-o", color="#d1495b", lw=2.2, ms=4,
+            label=r"full model:  $2(2^d - 1) + 1$")
+    ax.plot(d, nb, "-o", color="#2a9d8f", lw=2.2, ms=4,
+            label=r"Naive Bayes:  $2d + 1$")
+    ax.set_yscale("log")
+    ax.set_xlabel("number of binary features  d")
+    ax.set_ylabel("number of parameters  (log scale)")
+    ax.set_title("The naive assumption turns EXPONENTIAL into LINEAR\n"
+                 "this is the whole reason Naive Bayes exists", fontsize=11)
+    ax.grid(alpha=.3, which="both")
+    ax.legend(loc="upper left", fontsize=9.5)
+    for dd in (10, 20, 30):
+        i = dd - 1
+        ax.annotate(f"d={dd}:  {int(full[i]):,}  vs  {int(nb[i])}",
+                    xy=(dd, full[i]), xytext=(dd-8.5, full[i]*3.2),
+                    fontsize=8.6, color="#8a2436", fontweight="bold",
+                    arrowprops=dict(arrowstyle="-|>", color="#8a2436", lw=1.1))
+    ax.set_ylim(1, full[-1]*400)
+    save(fig, "nb_parameter_explosion.png")
+
+
+# ---------------------------------------------------------------------------
+# 19. Laplace smoothing removes the annihilating zero
+# ---------------------------------------------------------------------------
+def fig_nb_laplace_smoothing():
+    # counts from the worked example:  y=1 -> (1,1),(1,1),(1,0) ; y=0 -> (0,0),(0,1)
+    labels = [r"$p_1^1$", r"$p_2^1$", r"$p_1^0$", r"$p_2^0$"]
+    raw = [3/3, 2/3, 0/2, 1/2]
+    sm = [(3+1)/(3+2), (2+1)/(3+2), (0+1)/(2+2), (1+1)/(2+2)]
+
+    x = np.arange(4)
+    w = 0.36
+    fig, ax = plt.subplots(figsize=(7.0, 4.5))
+    b1 = ax.bar(x - w/2, raw, w, label="MLE (unsmoothed)", color="#d1495b")
+    b2 = ax.bar(x + w/2, sm, w, label="Laplace smoothed", color="#2a9d8f")
+
+    for b, v in zip(b1, raw):
+        ax.text(b.get_x()+b.get_width()/2, v + .03, f"{v:.2f}", ha="center",
+                fontsize=9, fontweight="bold", color="#8a2436")
+    for b, v in zip(b2, sm):
+        ax.text(b.get_x()+b.get_width()/2, v + .03, f"{v:.2f}", ha="center",
+                fontsize=9, fontweight="bold", color="#1d6b60")
+
+    ax.annotate("ZERO -> annihilates\nthe whole product",
+                xy=(2 - w/2, 0.035), xytext=(2 - w/2, 0.86),
+                color="#8a2436", fontsize=9.6, fontweight="bold",
+                ha="center",
+                arrowprops=dict(arrowstyle="-|>", color="#8a2436", lw=1.6))
+    ax.annotate("lifted off 0", xy=(2 + w/2, 0.28),
+                xytext=(2 + w/2 + 0.02, 0.56),
+                color="#1d6b60", fontsize=9.6, fontweight="bold",
+                ha="center",
+                arrowprops=dict(arrowstyle="-|>", color="#1d6b60", lw=1.6))
+
+    ax.set_xticks(x); ax.set_xticklabels(labels, fontsize=13)
+    ax.set_ylabel(r"estimate of  $P(x_j = 1 \mid y)$")
+    ax.set_ylim(0, 1.18)
+    ax.set_title("Laplace smoothing:  (count + 1) / (n$_y$ + 2)\n"
+                 "removes zeros AND pulls estimates off the extremes",
+                 fontsize=11)
+    ax.legend(loc="upper right", fontsize=9)
+    ax.grid(alpha=.3, axis="y")
+    save(fig, "nb_laplace_smoothing.png")
+
+
+def _gauss_contours(ax, mu, cov, color, levels=(.12, .4, .78)):
+    g = np.linspace(-5.2, 5.4, 260)
+    h = np.linspace(-4.4, 4.6, 260)
+    G, H = np.meshgrid(g, h)
+    P = np.c_[G.ravel(), H.ravel()] - mu
+    Ci = np.linalg.inv(cov)
+    Z = np.exp(-.5*np.einsum('ij,jk,ik->i', P, Ci, P)).reshape(G.shape)
+    ax.contour(G, H, Z, levels=list(levels), colors=color, linewidths=1.8)
+
+
+# ---------------------------------------------------------------------------
+# 20. The conditional-independence assumption forces axis-aligned densities
+# ---------------------------------------------------------------------------
+def fig_nb_independence_assumption():
+    n = 160
+    C = np.array([[1.25, 0.95], [0.95, 1.05]])       # strongly correlated
+    L = np.linalg.cholesky(C)
+    m0, m1 = np.array([-1.35, -0.9]), np.array([1.45, 1.0])
+    A = m0 + rng.normal(size=(n, 2)) @ L.T
+    B = m1 + rng.normal(size=(n, 2)) @ L.T
+
+    fig, axes = plt.subplots(1, 2, figsize=(11.6, 5.0))
+    for ax, use_diag, title, note in [
+            (axes[0], False, "TRUE class densities",
+             "features are correlated within each class\n(tilted ellipses)"),
+            (axes[1], True, "What NAIVE BAYES can represent",
+             "conditional independence ⇒ DIAGONAL covariance\n(axis-aligned ellipses only)")]:
+        for data, mu, c in [(A, m0, "#12457a"), (B, m1, "#c07800")]:
+            cov = np.cov(data.T)
+            if use_diag:
+                cov = np.diag(np.diag(cov))          # what NB assumes
+            _gauss_contours(ax, data.mean(axis=0), cov, c)
+        ax.scatter(A[:, 0], A[:, 1], s=17, color="#12457a", alpha=.55)
+        ax.scatter(B[:, 0], B[:, 1], s=17, color="#c07800", marker="s", alpha=.55)
+        ax.set_title(f"{title}\n{note}", fontsize=10.5)
+        ax.set_xlabel("$x_1$"); ax.set_ylabel("$x_2$")
+        ax.set_xlim(-5.2, 5.4); ax.set_ylim(-4.4, 4.6)
+        ax.set_aspect("equal")
+    fig.suptitle("Pitfall: Naive Bayes cannot model correlation between features",
+                 fontsize=12)
+    save(fig, "nb_independence_assumption.png")
+
+
+# ---------------------------------------------------------------------------
+# 21. Gaussian NB: shared variances -> linear ; per-class -> quadratic
+# ---------------------------------------------------------------------------
+def fig_gaussian_nb_boundaries():
+    g = np.linspace(-5.0, 5.0, 420)
+    h = np.linspace(-4.2, 4.2, 420)
+    G, H = np.meshgrid(g, h)
+
+    def log_score(mu, sd, prior):
+        """log P(y) + sum_j log N(x_j; mu_j, sd_j^2)   (diagonal = Naive Bayes)"""
+        out = np.log(prior)
+        for j, (m, s) in enumerate(zip(mu, sd)):
+            V = (G if j == 0 else H)
+            out = out - 0.5*np.log(2*np.pi*s**2) - (V - m)**2/(2*s**2)
+        return out
+
+    cases = [
+        # shared variances across the two classes -> x^2 terms cancel
+        dict(ax=0, m0=(-1.3, -0.6), s0=(1.0, 0.8),
+             m1=(1.5, 0.9), s1=(1.0, 0.8),
+             title="Shared variances  ($\\sigma_j^1 = \\sigma_j^0$)",
+             note="the $x_j^2$ terms CANCEL  ⇒  LINEAR boundary"),
+        # per-class variances -> x^2 terms survive
+        dict(ax=1, m0=(0.0, 0.0), s0=(0.62, 0.62),
+             m1=(0.35, 0.2), s1=(2.1, 2.1),
+             title="Per-class variances  ($\\sigma_j^1 \\neq \\sigma_j^0$)",
+             note="the $x_j^2$ terms SURVIVE  ⇒  QUADRATIC boundary"),
+    ]
+
+    fig, axes = plt.subplots(1, 2, figsize=(11.6, 5.0))
+    for c in cases:
+        ax = axes[c["ax"]]
+        m0, s0, m1, s1 = c["m0"], c["s0"], c["m1"], c["s1"]
+        Z = log_score(m1, s1, .5) - log_score(m0, s0, .5)
+        ax.contourf(G, H, (Z > 0).astype(float), levels=[-.5, .5, 1.5],
+                    colors=["#cfe0f5", "#f8ddb0"], alpha=.8)
+        ax.contour(G, H, Z, levels=[0], colors="#d1495b", linewidths=2.8)
+
+        for mu, sd, col, mk in [(m0, s0, "#12457a", "o"), (m1, s1, "#c07800", "s")]:
+            pts = np.c_[rng.normal(mu[0], sd[0], 90), rng.normal(mu[1], sd[1], 90)]
+            ax.scatter(pts[:, 0], pts[:, 1], s=16, color=col, marker=mk, alpha=.6)
+            ax.scatter(*mu, marker="X", s=170, color=col, edgecolor="white",
+                       linewidth=1.4, zorder=6)
+        ax.set_xlim(g[0], g[-1]); ax.set_ylim(h[0], h[-1])
+        ax.set_aspect("equal")
+        ax.set_xlabel("$x_1$"); ax.set_ylabel("$x_2$")
+        ax.set_title(f"{c['title']}\n{c['note']}", fontsize=10.5)
+    fig.suptitle("Gaussian Naive Bayes: the variance structure decides the boundary shape",
+                 fontsize=12)
+    save(fig, "gaussian_nb_boundaries.png")
+
+
 if __name__ == "__main__":
     # Weeks 1-3
     fig_pca()
@@ -778,4 +947,9 @@ if __name__ == "__main__":
     fig_entropy_curve()
     fig_decision_tree_partition()
     fig_generative_vs_discriminative()
+    # Week 8
+    fig_nb_parameter_explosion()
+    fig_nb_laplace_smoothing()
+    fig_nb_independence_assumption()
+    fig_gaussian_nb_boundaries()
     print("done")
