@@ -24,13 +24,6 @@ subject branch  mlt ┤               ├──►  PR base = mlt
 
 `main` only changes for repo-level things (this guide, `.gitignore`, steering).
 
-<details>
-<summary>Legacy note</summary>
-
-Weeks 5–8 were merged into `main` before this convention settled, so `main` still carries a copy of `mlt/`. The `mlt` branch is the source of truth for MLT going forward.
-
-</details>
-
 ## 📁 Layout within a subject branch
 
 ```text
