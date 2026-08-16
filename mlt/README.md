@@ -14,14 +14,24 @@ Revision notes for **MLT**: the unsupervised-learning and estimation block (Week
 | 6 | Regularization: Ridge & Lasso | [`06-ridge-lasso.md`](06-ridge-lasso.md) |
 | 7 | Classification: KNN & Decision Trees | [`07-classification-knn-trees.md`](07-classification-knn-trees.md) |
 | 8 | Naive Bayes | [`08-naive-bayes.md`](08-naive-bayes.md) |
-| ⚡ | **Cheat sheet** (last-minute formula recall) | [`cheat-sheet.md`](cheat-sheet.md) |
-| 📝 | **Mock test — 21 worked solutions** | [`mock-solutions.md`](mock-solutions.md) |
+| ⚡ | **Cheat sheet — full course** (Weeks 1–8) | [`cheat-sheet.md`](cheat-sheet.md) |
+| ⚡ | **Cheat sheet — Quiz 2** (Weeks 5–8 only) | [`cheat-sheet-quiz2.md`](cheat-sheet-quiz2.md) |
+| 📝 | **Quiz 1 mock — 21 worked solutions** | [`mock-solutions.md`](mock-solutions.md) |
 
 ## 🎯 How to use these notes
 
 - **First pass:** read the topics in order. Each file goes *intuition → formulas → worked example → exam traps*.
-- **Night before:** skim the [cheat sheet](cheat-sheet.md), then re-solve the [mock](mock-solutions.md) with the solutions hidden.
-- **Weakest-first:** if short on time, the highest-frequency Quiz-1 topics are **PCA numerics**, **K-means / k-means++**, and **EM responsibilities** (see the frequency table in the mock solutions).
+- **Night before:** skim the cheat sheet for the relevant quiz, then re-solve the mock with the solutions hidden.
+- **Weakest-first:** if short on time, use the priority list at the end of the relevant cheat sheet.
+
+### Quiz scope
+
+| Quiz | Weeks | Cheat sheet |
+|------|-------|-------------|
+| Quiz 1 | 1–4 — unsupervised learning & estimation | [`cheat-sheet.md`](cheat-sheet.md) (§ Weeks 1–4) |
+| Quiz 2 | 5–8 — supervised regression & classification | [`cheat-sheet-quiz2.md`](cheat-sheet-quiz2.md) |
+
+For **Quiz 1**, the highest-frequency topics are **PCA numerics**, **K-means / k-means++**, and **EM responsibilities** (see the frequency table in [`mock-solutions.md`](mock-solutions.md)).
 
 ## 🗺️ The big picture
 
