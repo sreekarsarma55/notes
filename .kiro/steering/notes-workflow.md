@@ -32,9 +32,9 @@ subject branch  mlt ┤               ├──► PR base = mlt      ✅ correc
    things (this file, the root README, `.gitignore`).
 4. Never push directly to `main` — always via a PR.
 
-> Historical note: Weeks 5–8 were merged into `main` before this convention was
-> settled, so `main` currently still carries a copy of `mlt/`. That is legacy.
-> Do not add more subject content to `main`.
+> `main` is kept deliberately small — currently just `README.md`, `.gitignore`
+> and this steering file. If you ever find subject folders on `main`, that is a
+> mistake to fix, not a pattern to follow.
 
 ## Layout inside a subject branch
 
