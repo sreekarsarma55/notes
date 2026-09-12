@@ -8,7 +8,7 @@ A personal knowledge base for study notes, revision material, cheat sheets, and 
 
 | Subject | Branch | Coverage |
 |---------|--------|----------|
-| Machine Learning Techniques (MLT) | [`mlt`](https://github.com/sreekarsarma55/notes/tree/mlt) | Weeks 1–8 |
+| Machine Learning Techniques (MLT) | [`mlt`](https://github.com/sreekarsarma55/notes/tree/mlt) | Weeks 1–12 |
 
 > To add a new subject, create a new long-lived branch (e.g. `dsa`, `stats`, `dbms`) and follow the layout below.
 
