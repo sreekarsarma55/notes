@@ -83,7 +83,7 @@ That trade is exactly ridge regression. 🎯
 MSE(w_ML) = 1·(1/4 + 1/0.1) = 0.25 + 10 = 10.25
                     └─┬─┘      └─┬─┘
               well-determined    the tiny eigenvalue
-                 direction       contributes 97.5% of the error
+                 direction       contributes 97.6% of the error
 ```
 
 One badly-determined direction dominates everything.
