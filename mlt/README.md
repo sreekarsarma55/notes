@@ -14,9 +14,15 @@ Revision notes for **MLT**: the unsupervised-learning and estimation block (Week
 | 6 | Regularization: Ridge & Lasso | [`06-ridge-lasso.md`](06-ridge-lasso.md) |
 | 7 | Classification: KNN & Decision Trees | [`07-classification-knn-trees.md`](07-classification-knn-trees.md) |
 | 8 | Naive Bayes | [`08-naive-bayes.md`](08-naive-bayes.md) |
+| 9 | Perceptron & Logistic Regression | [`09-perceptron-logistic.md`](09-perceptron-logistic.md) |
+| 10 | Support Vector Machines | [`10-svm.md`](10-svm.md) |
+| 11 | Soft-Margin Dual, Bagging & Boosting | [`11-svm-dual-ensembles.md`](11-svm-dual-ensembles.md) |
+| 12 | Loss Functions & Neural Networks | [`12-losses-neural-networks.md`](12-losses-neural-networks.md) |
 | ⚡ | **Cheat sheet — full course** (Weeks 1–8) | [`cheat-sheet.md`](cheat-sheet.md) |
 | ⚡ | **Cheat sheet — Quiz 2** (Weeks 5–8 only) | [`cheat-sheet-quiz2.md`](cheat-sheet-quiz2.md) |
 | 📝 | **Quiz 1 mock — 21 worked solutions** | [`mock-solutions.md`](mock-solutions.md) |
+| 📄 | **Previous-year end-term papers** (7) | [`pyq/`](pyq/) |
+| 📄 | **End-term practice papers + solutions** (2) | [`et-practice/`](et-practice/) |
 
 ## 🎯 How to use these notes
 
@@ -24,12 +30,15 @@ Revision notes for **MLT**: the unsupervised-learning and estimation block (Week
 - **Night before:** skim the cheat sheet for the relevant quiz, then re-solve the mock with the solutions hidden.
 - **Weakest-first:** if short on time, use the priority list at the end of the relevant cheat sheet.
 
-### Quiz scope
+### Exam scope
 
-| Quiz | Weeks | Cheat sheet |
-|------|-------|-------------|
-| Quiz 1 | 1–4 — unsupervised learning & estimation | [`cheat-sheet.md`](cheat-sheet.md) (§ Weeks 1–4) |
+| Exam | Weeks | Material |
+|------|-------|----------|
+| Quiz 1 | 1–4 — unsupervised learning & estimation | [`cheat-sheet.md`](cheat-sheet.md) (§ Weeks 1–4) + [`mock-solutions.md`](mock-solutions.md) |
 | Quiz 2 | 5–8 — supervised regression & classification | [`cheat-sheet-quiz2.md`](cheat-sheet-quiz2.md) |
+| **End term** | **1–12 (everything, incl. W11/W12)** | [`cheat-sheet.md`](cheat-sheet.md) (all weeks) + [`pyq/`](pyq/) + [`et-practice/`](et-practice/) |
+
+> Note: W11/W12 assignment scores are excluded from GAA, but **W11/W12 content is examinable in the end term**.
 
 For **Quiz 1**, the highest-frequency topics are **PCA numerics**, **K-means / k-means++**, and **EM responsibilities** (see the frequency table in [`mock-solutions.md`](mock-solutions.md)).
 
