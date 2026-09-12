@@ -304,6 +304,115 @@ GAUSSIAN NAIVE BAYES (continuous x):
 
 ---
 
+## Perceptron & Logistic Regression (Week 9)
+
+```text
+labels: perceptron/SVM use y ∈ {−1,+1} ;  logistic uses y ∈ {0,1}
+
+PERCEPTRON
+    predict sign(w^T x) ;  mistake when yᵢ(w^T xᵢ) ≤ 0
+    update:  w ← w + yᵢ xᵢ      (raises that point's margin by ‖xᵢ‖²)
+    CONVERGENCE:  t ≤ R²/γ²     R = max‖xᵢ‖,  γ = margin with ‖w*‖=1
+        independent of n and d ; NEVER terminates if not separable
+    proof: w*ᵀw⁽ᵗ⁾ ≥ tγ  and  ‖w⁽ᵗ⁾‖² ≤ tR²  ⇒ Cauchy-Schwarz
+
+SIGMOID
+    σ(z) = 1/(1+e⁻ᶻ) ,  σ(0)=0.5 ,  σ(−z)=1−σ(z) ,  σ'(z)=σ(1−σ)
+
+LOGISTIC REGRESSION
+    P(y=1|x) = σ(w^T x)
+    loss (cross-entropy) = −Σ[y log σ + (1−y) log(1−σ)]
+    GRADIENT:  ∇L = Σᵢ (σ(w^T xᵢ) − yᵢ) xᵢ
+    NO closed form → gradient descent ;  CONVEX ⇒ global optimum
+    boundary σ=0.5 ⇔ w^T x = 0  → LINEAR ;  log-odds = w^T x
+```
+
+---
+
+## SVM (Weeks 10–11)
+
+```text
+PRIMAL (hard margin)
+    min ½‖w‖²   s.t.  yᵢ(w^T xᵢ + b) ≥ 1
+    margin width = 2/‖w‖  (each side 1/‖w‖)
+    convex QP ⇒ UNIQUE global optimum
+
+LAGRANGIAN ⇒ stationarity
+    w = Σᵢ αᵢ yᵢ xᵢ           Σᵢ αᵢ yᵢ = 0
+
+DUAL
+    max_α  Σᵢ αᵢ − ½ ΣᵢΣⱼ αᵢαⱼ yᵢyⱼ (xᵢ^T xⱼ)
+    hard:  αᵢ ≥ 0            soft:  0 ≤ αᵢ ≤ C   ← ONLY difference (box)
+    depends only on inner products ⇒ KERNEL TRICK applies
+
+SUPPORT VECTORS
+    αᵢ > 0 ⇒ support vector ;  αᵢ = 0 ⇒ deleting the point changes nothing
+
+SOFT MARGIN
+    min ½‖w‖² + C Σ ξᵢ   s.t. yᵢ(w^T xᵢ + b) ≥ 1 − ξᵢ, ξᵢ ≥ 0
+    ⇔ min ½‖w‖² + C Σ max(0, 1 − yᵢ(w^T xᵢ + b))     ← hinge loss form
+    ξᵢ > 1 ⇒ MISCLASSIFIED
+    large C → narrow margin, overfit ;  small C → wide margin, underfit
+    C → ∞ recovers hard margin ;  C chosen by cross-validation
+
+COMPLEMENTARY SLACKNESS (3 cases — memorise)
+    αᵢ = 0        yᵢf(xᵢ) > 1   outside margin      ξᵢ = 0
+    0 < αᵢ < C    yᵢf(xᵢ) = 1   ON the margin       ξᵢ = 0   ← use for b
+    αᵢ = C        yᵢf(xᵢ) < 1   violates margin     ξᵢ > 0
+```
+
+---
+
+## Ensembles (Week 11)
+
+```text
+BAGGING  — bootstrap samples (WITH replacement), then average / majority vote
+    reduces VARIANCE ; use DEEP trees ; PARALLEL
+    each bootstrap holds ≈63.2% of distinct points  (1 − 1/e)
+    the ≈36.8% left out = OUT-OF-BAG set → free validation
+    RANDOM FOREST = bagging + random feature subset per split (decorrelates)
+
+BOOSTING — sequential, reweight what the previous model got wrong
+    reduces BIAS ; use WEAK learners (stumps) ; CANNOT parallelise
+    sensitive to noisy labels (exponential loss)
+
+ADABOOST
+    D₁(i) = 1/n
+    ε_t = Σᵢ D_t(i)·𝟙(h_t(xᵢ) ≠ yᵢ)
+    α_t = ½ ln((1 − ε_t)/ε_t)
+    D_{t+1}(i) ∝ D_t(i)·exp(−α_t yᵢ h_t(xᵢ))
+    H(x) = sign(Σ_t α_t h_t(x))
+    ε=0.2 → α=0.693 ;  ε=0.5 → α=0 (ignored) ;  ε→0 → α→∞
+```
+
+---
+
+## Losses & Neural Networks (Week 12)
+
+```text
+margin z = y(w^T x).  Every algorithm = a convex SURROGATE for 0-1 loss:
+
+    0-1          𝟙(z ≤ 0)          non-convex (the target)
+    hinge        max(0, 1 − z)     SVM        — EXACTLY 0 for z ≥ 1
+    logistic     log(1 + e⁻ᶻ)      logistic regression — never exactly 0
+    perceptron   max(0, −z)        perceptron
+    exponential  e⁻ᶻ               AdaBoost   — most OUTLIER-SENSITIVE
+    squared      (1 − z)²          bad: punishes points that are TOO correct
+
+NEURAL NETWORKS
+    layer:  a⁽ˡ⁾ = g(W⁽ˡ⁾a⁽ˡ⁻¹⁾ + b⁽ˡ⁾)
+    activations: sigmoid, tanh, ReLU max(0,z)
+    output: sigmoid (binary) / softmax (multi-class) / linear (regression)
+    backpropagation = CHAIN RULE to get gradients (not a new optimiser)
+    NON-CONVEX ⇒ LOCAL minimum only   (vs convex: linear/ridge/lasso/logistic/SVM)
+    universal approximation: 1 hidden layer + enough units ≈ any continuous fn
+
+PARAMETER COUNT   per layer n_in → n_out:  n_in × n_out + n_out
+    4 → 5 → 3 → 1 :  25 + 18 + 4 = 47      ← don't forget the BIASES
+```
+
+---
+
 ## 🔢 Numbers Worth Remembering
 
 | Setup | Result |
