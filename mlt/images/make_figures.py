@@ -925,6 +925,307 @@ def fig_gaussian_nb_boundaries():
     save(fig, "gaussian_nb_boundaries.png")
 
 
+# ---------------------------------------------------------------------------
+# 22. Sigmoid: turning a score into a probability
+# ---------------------------------------------------------------------------
+def fig_sigmoid_logistic():
+    z = np.linspace(-8, 8, 600)
+    s = 1/(1 + np.exp(-z))
+
+    fig, axes = plt.subplots(1, 2, figsize=(11.4, 4.4))
+
+    ax = axes[0]
+    ax.plot(z, s, color="#3b7dd8", lw=2.8, label=r"$\sigma(z)=1/(1+e^{-z})$")
+    ax.plot(z, s*(1-s), color="#2a9d8f", lw=2.0, ls="--",
+            label=r"$\sigma'(z)=\sigma(1-\sigma)$")
+    ax.axhline(.5, color="grey", lw=.8, ls=":")
+    ax.axvline(0, color="grey", lw=.8, ls=":")
+    ax.scatter([0], [.5], s=110, color="#d1495b", zorder=6)
+    ax.annotate(r"$\sigma(0)=0.5$" + "\n(decision threshold)", xy=(0, .5),
+                xytext=(1.4, .24), color="#d1495b", fontsize=9.5,
+                fontweight="bold",
+                arrowprops=dict(arrowstyle="-|>", color="#d1495b"))
+    ax.set_xlabel(r"score  $z = w^T x$"); ax.set_ylabel("value")
+    ax.set_title("Sigmoid squashes any score into (0,1)\n"
+                 r"$P(y=1\mid x)=\sigma(w^T x)$", fontsize=10.5)
+    ax.legend(loc="upper left", fontsize=9); ax.grid(alpha=.3)
+
+    # right: the boundary is linear because sigma(z)=0.5  <=>  z=0
+    ax = axes[1]
+    n = 70
+    A = rng.normal([-1.2, -0.7], .85, size=(n, 2))
+    B = rng.normal([1.3, 0.9], .85, size=(n, 2))
+    g = np.linspace(-4.2, 4.4, 260); h = np.linspace(-3.8, 4.0, 260)
+    G, H = np.meshgrid(g, h)
+    w, b = np.array([1.0, 0.9]), -0.15            # illustrative fitted model
+    P = 1/(1 + np.exp(-(w[0]*G + w[1]*H + b)))
+    cf = ax.contourf(G, H, P, levels=np.linspace(0, 1, 21), cmap="RdYlBu_r",
+                     alpha=.75)
+    ax.contour(G, H, P, levels=[.5], colors="black", linewidths=2.6)
+    ax.scatter(A[:, 0], A[:, 1], s=20, color="#12457a", alpha=.8)
+    ax.scatter(B[:, 0], B[:, 1], s=20, color="#7a1220", marker="s", alpha=.8)
+    fig.colorbar(cf, ax=ax, label=r"$P(y=1\mid x)$")
+    ax.set_xlabel("$x_1$"); ax.set_ylabel("$x_2$")
+    ax.set_title("Logistic regression: smooth probabilities,\n"
+                 r"but the boundary $\sigma=0.5$ is a straight LINE", fontsize=10.5)
+    save(fig, "sigmoid_logistic.png")
+
+
+# ---------------------------------------------------------------------------
+# 23. Perceptron finds SOME separator; SVM finds the MAXIMUM MARGIN one
+# ---------------------------------------------------------------------------
+def fig_perceptron_vs_svm():
+    # symmetric data, so the max-margin boundary is known analytically to be
+    # x1 + x2 = 0 (direction w ∝ (1,1), b = 0)
+    pos = np.array([[2.2, 1.0], [1.0, 2.2], [3.0, 2.4], [2.0, 3.2], [3.4, 1.6]])
+    neg = np.array([[-1.0, -2.2], [-2.2, -1.0], [-2.4, -3.0], [-3.2, -2.0],
+                    [-1.6, -3.4]])
+
+    t = np.linspace(-4.6, 4.6, 2)
+    fig, axes = plt.subplots(1, 2, figsize=(11.4, 5.0))
+
+    for ax, kind in [(axes[0], "perceptron"), (axes[1], "svm")]:
+        ax.scatter(pos[:, 0], pos[:, 1], s=52, color="#12457a", label="$y=+1$",
+                   zorder=4)
+        ax.scatter(neg[:, 0], neg[:, 1], s=52, color="#c07800", marker="s",
+                   label="$y=-1$", zorder=4)
+
+        if kind == "perceptron":
+            # a valid but arbitrary separator (small margin)
+            wv, bv = np.array([1.0, 0.30]), 0.55
+            ax.plot(t, -(wv[0]*t + bv)/wv[1], color="#d1495b", lw=2.6)
+            ax.set_title("PERCEPTRON\nany separator will do — margin is tiny\n"
+                         "(depends on init / point order)", fontsize=10.5)
+        else:
+            # Rescale the known direction so that min_i y_i(w^T x_i + b) = 1,
+            # which is the SVM normalisation. Only then do the lines
+            # w^T x + b = ±1 actually pass through the support vectors.
+            w0, b0 = np.array([1.0, 1.0]), 0.0
+            m = np.r_[pos @ w0 + b0, -(neg @ w0 + b0)].min()
+            wv, bv = w0/m, b0/m
+            ax.plot(t, -(wv[0]*t + bv)/wv[1], color="#d1495b", lw=2.8)
+            for c in (1, -1):
+                ax.plot(t, -(wv[0]*t + bv - c)/wv[1], color="#2a9d8f",
+                        lw=2.0, ls="--")
+            # A diagonal band would be clipped by the axes and make the
+            # boundary look off-centre, so annotate the width along w instead.
+            u = wv/np.linalg.norm(wv)              # unit normal
+            half = (1/np.linalg.norm(wv))          # margin on each side
+            p0, p1 = -u*half, u*half
+            ax.annotate("", xy=p1, xytext=p0,
+                        arrowprops=dict(arrowstyle="<|-|>", color="#2a9d8f",
+                                        lw=2.2))
+            ax.text(0.15, 1.35, r"$2/\|w\|$", color="#1d6b60",
+                    fontsize=11.5, fontweight="bold",
+                    bbox=dict(boxstyle="round,pad=0.18", fc="white",
+                              ec="none", alpha=.85))
+            # support vectors are exactly the points with y(w^T x + b) = 1
+            for P, y in [(pos, 1), (neg, -1)]:
+                sv = P[np.isclose(y*(P @ wv + bv), 1.0)]
+                ax.scatter(sv[:, 0], sv[:, 1], s=230, facecolor="none",
+                           edgecolor="#d1495b", linewidth=2.6, zorder=6)
+            width = 2/np.linalg.norm(wv)
+            ax.set_title("SVM\nMAXIMUM margin; circled points are the\n"
+                         r"SUPPORT VECTORS ($\alpha_i>0$)"
+                         f"   —   width $2/\\|w\\|$ = {width:.2f}", fontsize=10.5)
+
+        ax.axhline(0, color="grey", lw=.6); ax.axvline(0, color="grey", lw=.6)
+        ax.set_xlim(-4.6, 4.6); ax.set_ylim(-4.4, 4.4)
+        ax.set_aspect("equal")
+        ax.set_xlabel("$x_1$"); ax.set_ylabel("$x_2$")
+    axes[0].legend(loc="lower right", fontsize=9)
+    save(fig, "perceptron_vs_svm_margin.png")
+
+
+# ---------------------------------------------------------------------------
+# 24. Soft margin: the effect of C
+# ---------------------------------------------------------------------------
+def fig_svm_soft_margin_C():
+    n = 45
+    A = rng.normal([-1.0, -0.5], 1.15, size=(n, 2))
+    B = rng.normal([1.2, 0.8], 1.15, size=(n, 2))
+    Xd = np.vstack([A, B]); yd = np.r_[-np.ones(n), np.ones(n)]
+
+    def fit_hinge(C, iters=6000, eta=2e-3):
+        """min 1/2||w||^2 + C * sum hinge   via subgradient descent"""
+        w = np.zeros(2); b = 0.0
+        for _ in range(iters):
+            m = yd*(Xd @ w + b)
+            viol = m < 1
+            gw = w - C*(yd[viol, None]*Xd[viol]).sum(axis=0)
+            gb = -C*yd[viol].sum()
+            w -= eta*gw; b -= eta*gb
+        return w, b
+
+    t = np.linspace(-5, 5, 2)
+    fig, axes = plt.subplots(1, 2, figsize=(11.4, 5.0))
+    for ax, C, note in [
+            (axes[0], 0.01, "SMALL C — violations tolerated\nWIDE margin, more regularised (underfit risk)"),
+            (axes[1], 100.0, "LARGE C — violations punished\nNARROW margin, close to hard margin (overfit risk)")]:
+        w, b = fit_hinge(C)
+        ax.scatter(A[:, 0], A[:, 1], s=26, color="#c07800", marker="s", alpha=.8)
+        ax.scatter(B[:, 0], B[:, 1], s=26, color="#12457a", alpha=.8)
+        ax.plot(t, -(w[0]*t + b)/w[1], color="#d1495b", lw=2.6)
+        for c in (1, -1):
+            ax.plot(t, -(w[0]*t + b - c)/w[1], color="#2a9d8f", lw=1.8, ls="--")
+        ax.fill_between(t, -(w[0]*t + b - 1)/w[1], -(w[0]*t + b + 1)/w[1],
+                        color="#2a9d8f", alpha=.13)
+        width = 2/np.linalg.norm(w)
+        ax.set_title(f"C = {C:g}\n{note}\nmargin width $2/\\|w\\|$ = {width:.2f}",
+                     fontsize=10)
+        ax.set_xlim(-4.6, 4.6); ax.set_ylim(-4.2, 4.2)
+        ax.set_aspect("equal"); ax.set_xlabel("$x_1$"); ax.set_ylabel("$x_2$")
+    save(fig, "svm_soft_margin_C.png")
+
+
+# ---------------------------------------------------------------------------
+# 25. Surrogate loss functions (all convex upper bounds on 0-1)
+# ---------------------------------------------------------------------------
+def fig_surrogate_losses():
+    z = np.linspace(-3, 3, 900)
+    fig, ax = plt.subplots(figsize=(7.4, 5.0))
+
+    ax.step(z, (z <= 0).astype(float), where="post", color="black", lw=2.8,
+            label="0-1 loss  (the target — NON-convex)")
+    ax.plot(z, np.maximum(0, 1 - z), color="#2a9d8f", lw=2.4,
+            label=r"hinge  $\max(0,1-z)$  — SVM")
+    ax.plot(z, np.log(1 + np.exp(-z)), color="#3b7dd8", lw=2.4,
+            label=r"logistic  $\log(1+e^{-z})$  — logistic reg.")
+    ax.plot(z, np.maximum(0, -z), color="#9b5de5", lw=2.2, ls="--",
+            label=r"perceptron  $\max(0,-z)$")
+    ax.plot(z, np.exp(-z), color="#d1495b", lw=2.4,
+            label=r"exponential  $e^{-z}$  — AdaBoost")
+
+    ax.axvline(0, color="grey", lw=.8, ls=":")
+    ax.axvline(1, color="grey", lw=.8, ls=":")
+    ax.text(1.06, 0.22, "z = 1", fontsize=9, color="#4a5a6a")
+    ax.text(-2.9, 3.30, "← misclassified", fontsize=9.5, color="#8a2436",
+            fontweight="bold")
+    ax.text(1.55, 3.30, "correctly classified →", fontsize=9.5, color="#1d6b60",
+            fontweight="bold")
+    ax.annotate("hinge hits exactly 0\nfor z ≥ 1", xy=(1.6, 0), xytext=(1.5, 1.05),
+                color="#1d6b60", fontsize=9, fontweight="bold",
+                arrowprops=dict(arrowstyle="-|>", color="#1d6b60"))
+    # anchor must stay INSIDE the axes or the whole annotation gets clipped
+    ax.annotate("exponential explodes\n⇒ very outlier-sensitive",
+                xy=(-1.55, np.exp(1.55)), xytext=(-2.92, 5.15),
+                color="#8a2436", fontsize=9, fontweight="bold", ha="left",
+                arrowprops=dict(arrowstyle="-|>", color="#8a2436"))
+
+    ax.set_xlim(-3, 3); ax.set_ylim(-0.15, 6)
+    ax.set_xlabel(r"margin   $z = y\,(w^T x)$")
+    ax.set_ylabel("loss")
+    ax.set_title("Every algorithm = a different convex SURROGATE for 0-1 loss\n"
+                 "(this is how classification becomes differentiable)",
+                 fontsize=11)
+    ax.legend(loc="upper right", fontsize=8.8)
+    ax.grid(alpha=.3)
+    save(fig, "surrogate_losses.png")
+
+
+# ---------------------------------------------------------------------------
+# 26. Bagging (parallel, cuts variance) vs Boosting (sequential, cuts bias)
+# ---------------------------------------------------------------------------
+def fig_bagging_vs_boosting():
+    fig, axes = plt.subplots(1, 2, figsize=(11.8, 4.8))
+
+    def box(ax, x, y, w, h, txt, fc, ec, fs=9):
+        ax.add_patch(plt.Rectangle((x, y), w, h, facecolor=fc, edgecolor=ec,
+                                   lw=1.8, zorder=3))
+        ax.text(x + w/2, y + h/2, txt, ha="center", va="center", fontsize=fs,
+                zorder=4, color="#12457a", fontweight="bold")
+
+    # ---- bagging: parallel ----
+    ax = axes[0]; ax.axis("off"); ax.set_xlim(0, 10); ax.set_ylim(0, 10)
+    box(ax, 3.4, 8.4, 3.2, 1.1, "full dataset", "#e8eef7", "#3b7dd8")
+    for i, yy in enumerate([6.0, 4.2, 2.4]):
+        box(ax, 0.6, yy, 2.6, 1.0, f"bootstrap {i+1}\n(with replacement)",
+            "#cfe0f5", "#3b7dd8", 7.6)
+        box(ax, 4.4, yy, 2.4, 1.0, "deep tree", "#f8ddb0", "#c07800", 8.4)
+        ax.annotate("", xy=(4.4, yy+.5), xytext=(3.2, yy+.5),
+                    arrowprops=dict(arrowstyle="-|>", color="#7f8fa6", lw=1.5))
+        ax.annotate("", xy=(1.9, yy+1.0), xytext=(5.0, 8.4),
+                    arrowprops=dict(arrowstyle="-|>", color="#7f8fa6", lw=1.2))
+        ax.annotate("", xy=(8.0, 4.9), xytext=(6.8, yy+.5),
+                    arrowprops=dict(arrowstyle="-|>", color="#7f8fa6", lw=1.2))
+    box(ax, 7.4, 4.4, 2.2, 1.0, "average /\nmajority vote", "#cfe0f5", "#12457a", 8)
+    ax.text(5, 0.9, "PARALLEL — models are independent\nreduces VARIANCE  "
+                    "(Random Forest)", ha="center", fontsize=10,
+            fontweight="bold", color="#12457a")
+    ax.set_title("BAGGING", fontsize=12, fontweight="bold")
+
+    # ---- boosting: sequential ----
+    ax = axes[1]; ax.axis("off"); ax.set_xlim(0, 10); ax.set_ylim(0, 10)
+    xs = [0.5, 3.4, 6.3]
+    for i, x in enumerate(xs):
+        box(ax, x, 5.6, 2.5, 1.2, f"stump $h_{i+1}$\n$\\alpha_{i+1}$",
+            "#f8ddb0", "#c07800", 9)
+        box(ax, x, 3.2, 2.5, 1.0, "reweight\nwrong points ↑", "#fde2e4",
+            "#d1495b", 7.6)
+        ax.annotate("", xy=(x+1.25, 5.6), xytext=(x+1.25, 4.2),
+                    arrowprops=dict(arrowstyle="-|>", color="#d1495b", lw=1.6))
+        if i < 2:
+            ax.annotate("", xy=(xs[i+1], 3.7), xytext=(x+2.5, 3.7),
+                        arrowprops=dict(arrowstyle="-|>", color="#7f8fa6", lw=1.8))
+    box(ax, 2.6, 8.2, 4.8, 1.1, r"$H(x)=\mathrm{sign}(\sum_t \alpha_t h_t(x))$",
+        "#cfe0f5", "#12457a", 9.5)
+    for x in xs:
+        ax.annotate("", xy=(5.0, 8.2), xytext=(x+1.25, 6.8),
+                    arrowprops=dict(arrowstyle="-|>", color="#7f8fa6", lw=1.1))
+    ax.text(5, 1.5, "SEQUENTIAL — each model fixes the last one's mistakes\n"
+                    "reduces BIAS  (AdaBoost)", ha="center", fontsize=10,
+            fontweight="bold", color="#8a5300")
+    ax.set_title("BOOSTING", fontsize=12, fontweight="bold")
+    save(fig, "bagging_vs_boosting.png")
+
+
+# ---------------------------------------------------------------------------
+# 27. Neural network architecture and parameter count
+# ---------------------------------------------------------------------------
+def fig_neural_network():
+    layers = [4, 5, 3, 1]
+    names = ["input\n(4)", "hidden 1\n(5)", "hidden 2\n(3)", "output\n(1)"]
+    xs = np.linspace(1.0, 9.0, len(layers))
+
+    fig, ax = plt.subplots(figsize=(8.6, 5.2))
+    ax.axis("off"); ax.set_xlim(0, 10); ax.set_ylim(-0.4, 7.4)
+
+    pos = []
+    for x, k in zip(xs, layers):
+        ys = np.linspace(6.2, 6.2 - 1.15*(k-1), k) if k > 1 else np.array([4.5])
+        ys = ys - (ys.mean() - 4.2)
+        pos.append([(x, y) for y in ys])
+
+    for a, b in zip(pos[:-1], pos[1:]):
+        for (x0, y0) in a:
+            for (x1, y1) in b:
+                ax.plot([x0, x1], [y0, y1], color="#c7d3e3", lw=.8, zorder=1)
+
+    cols = ["#12457a", "#3b7dd8", "#3b7dd8", "#d1495b"]
+    for (layer, c) in zip(pos, cols):
+        for (x, y) in layer:
+            ax.add_patch(plt.Circle((x, y), .26, facecolor="white",
+                                    edgecolor=c, lw=2.2, zorder=3))
+
+    for x, nm in zip(xs, names):
+        ax.text(x, 7.0, nm, ha="center", fontsize=10, fontweight="bold",
+                color="#12457a")
+
+    calc = [f"{a}×{b} + {b} = {a*b + b}" for a, b in zip(layers[:-1], layers[1:])]
+    total = sum(a*b + b for a, b in zip(layers[:-1], layers[1:]))
+    for x, c in zip((xs[:-1] + xs[1:])/2, calc):
+        ax.text(x, 1.55, c, ha="center", fontsize=9.5, color="#8a5300",
+                fontweight="bold")
+    ax.text(5, 0.55, f"total = {total} parameters", ha="center", fontsize=12.5,
+            fontweight="bold", color="#d1495b")
+    ax.text(5, 2.35, "per layer:   weights $n_{in}\\times n_{out}$   +   "
+                     "biases $n_{out}$", ha="center", fontsize=10,
+            color="#12457a")
+    ax.set_title("Counting neural-network parameters   (4 → 5 → 3 → 1)",
+                 fontsize=12)
+    save(fig, "neural_network.png")
+
+
 if __name__ == "__main__":
     # Weeks 1-3
     fig_pca()
@@ -952,4 +1253,11 @@ if __name__ == "__main__":
     fig_nb_laplace_smoothing()
     fig_nb_independence_assumption()
     fig_gaussian_nb_boundaries()
+    # Weeks 9-12
+    fig_sigmoid_logistic()
+    fig_perceptron_vs_svm()
+    fig_svm_soft_margin_C()
+    fig_surrogate_losses()
+    fig_bagging_vs_boosting()
+    fig_neural_network()
     print("done")
