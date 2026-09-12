@@ -4,8 +4,11 @@ Phone-friendly revision. Open these on GitHub — no laptop needed.
 
 | File | Use it for |
 |---|---|
-| [`question-archetypes.md`](question-archetypes.md) | **The 15 recurring question types + method + trap.** Start here. |
-| [`solved-fn-2026.md`](solved-fn-2026.md) | Fully worked 2026 paper, answers verified |
+| [`most-likely-questions.md`](most-likely-questions.md) | 🚨 **READ FIRST.** 5 patterns that appeared in BOTH 2026 papers |
+| [`question-archetypes.md`](question-archetypes.md) | The 15 recurring question types + method + trap |
+| [`solved-fn-2026.md`](solved-fn-2026.md) | FN T1 2026 worked out, answers verified |
+| [`solved-an-2026.md`](solved-an-2026.md) | AN T1 2026 worked out, answers verified |
+| [`practice-paper-patterns.md`](practice-paper-patterns.md) | 8 extra patterns from the solved practice papers |
 | [`../cheat-sheet.md`](../cheat-sheet.md) | All formulas, Weeks 1–12 |
 | [`../pyq-analysis.md`](../pyq-analysis.md) | Auto-extracted topic/marks stats |
 
