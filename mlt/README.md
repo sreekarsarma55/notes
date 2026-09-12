@@ -21,8 +21,10 @@ Revision notes for **MLT**: the unsupervised-learning and estimation block (Week
 | ⚡ | **Cheat sheet — full course** (Weeks 1–8) | [`cheat-sheet.md`](cheat-sheet.md) |
 | ⚡ | **Cheat sheet — Quiz 2** (Weeks 5–8 only) | [`cheat-sheet-quiz2.md`](cheat-sheet-quiz2.md) |
 | 📝 | **Quiz 1 mock — 21 worked solutions** | [`mock-solutions.md`](mock-solutions.md) |
+| 🎯 | **Exam prep — archetypes & solved papers** (phone-friendly) | [`exam-prep/`](exam-prep/) |
 | 📄 | **Previous-year end-term papers** (7) | [`pyq/`](pyq/) |
 | 📄 | **End-term practice papers + solutions** (2) | [`et-practice/`](et-practice/) |
+| 📊 | **PYQ topic/marks analysis** (auto-extracted) | [`pyq-analysis.md`](pyq-analysis.md) |
 
 ## 🎯 How to use these notes
 
