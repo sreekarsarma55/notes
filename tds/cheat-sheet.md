@@ -19,7 +19,8 @@ question id (`q-...`), `throw new Error`, `tolerance`, `expected`.
 sample variance      s² = Σ(xᵢ − x̄)² / (n − 1)     statistics.variance / VAR.S / ddof=1
 population variance  σ² = Σ(xᵢ − μ)²  / n           statistics.pvariance / VAR.P / ddof=0
 Pearson r            r  = Σ(aᵢ−ā)(bᵢ−b̄) / √(Σ(aᵢ−ā)² Σ(bᵢ−b̄)²)
-p95 (nearest-rank)   sorted(x)[ceil(0.95 × n) − 1]
+p95 (linear)         r=(n−1)·0.95; x₍⌊r⌋₎ + (r−⌊r⌋)(x₍⌊r⌋+1₎ − x₍⌊r⌋₎)   numpy default · GA0 Q25
+p95 (nearest-rank)   sorted(x)[ceil(0.95 × n) − 1]                     differs by up to 7 ms on Q25 data
 ```
 
 ## Chart.js axis manipulations
@@ -58,6 +59,12 @@ Browser-based graders send an `OPTIONS` preflight first; without CORS the failur
 like "cannot reach endpoint". Note: `allow_origins=["*"]` cannot be combined with
 `allow_credentials=True`.
 
+If the grader **reads a response header in JavaScript** (`res.headers.get(...)`), also
+add `expose_headers=["*"]`. Cross-origin JS can only read the safelisted headers
+(Content-Type, Cache-Control, Content-Language, Content-Length, Expires,
+Last-Modified, Pragma). `Access-Control-Allow-Origin` and custom headers like
+`X-Email` read as `null` otherwise (GA0 Q18, Q25).
+
 ## uv
 
 ```bash
@@ -70,21 +77,21 @@ uvx <tool>                            # run a tool without installing
 ## Bash one-liners that keep recurring
 
 ```bash
-# flatten nested dirs into one folder
-find . -type f -exec mv -n {} target/ \;
+# flatten nested dirs into one folder (skip files already moved)
+mkdir flat && find . -mindepth 2 -type f -not -path './flat/*' -exec mv -n {} flat/ \;
 
-# shift every digit by one (1→2, 9→0) in filenames
-for f in *; do mv "$f" "$(echo "$f" | tr '0123456789' '1234567890')"; done
+# shift every digit by one (1→2, 9→0); skip names with no digit (mv a a is an error)
+for f in *; do n=$(echo "$f" | tr '0-9' '1-90'); [ "$f" = "$n" ] || mv "$f" "$n"; done
 
 # stable, locale-independent hash of a folder's contents
 grep . * | LC_ALL=C sort | sha256sum
 
-# case-insensitive replace, preserving line endings
+# case-insensitive replace, preserving line endings (GNU sed; on macOS: perl -pi -e 's/iitm/IIT Madras/gi' *)
 sed -i 's/IITM/IIT Madras/gI' *
 
-# recursive mirror of a site, HTML only
-wget --recursive --level=3 --no-parent --convert-links \
-     --adjust-extension --accept html,htm --directory-prefix=./out URL
+# recursive mirror of a site, HTML only, then count files by first letter
+wget --recursive --level=inf --no-parent --accept html,htm --directory-prefix=./out URL
+find out -type f -name '*.htm*' -printf '%f\n' | grep -v '^index' | grep -c '^[M-Wm-w]'
 ```
 
 ## Encodings
@@ -95,7 +102,9 @@ pd.read_csv("data2.csv", encoding="utf-8")
 pd.read_csv("data3.txt", encoding="utf-16", sep="\t")
 ```
 
-UTF-16 files carry a BOM; use `utf-16` (not `utf-16le`) to let Python read it.
+UTF-16 files carry a BOM; use `utf-16` (not `utf-16le`) so Python reads the BOM and
+removes it. Use `cp1252`, not `latin-1`, for Windows files: both read without an error,
+but only cp1252 maps 0x80–0x9F to `€ † ‚ ž …`. `file data*` tells you the encoding.
 
 ## AI Pipe
 
@@ -133,10 +142,52 @@ tb = exc.__traceback__                     # walk tb_next; DEEPEST frame raised
 ```text
 api/index.py        + `app` ASGI object
 requirements.txt    runtime deps
-vercel.json         {"builds":[{"src":"api/index.py","use":"@vercel/python"}],
+vercel.json         {"builds":[{"src":"api/index.py","use":"@vercel/python",
+                                "config":{"includeFiles":"api/data/**"}}],
                      "routes":[{"src":"/(.*)","dest":"api/index.py"}]}
 ```
 
-Deploying a subfolder: set **Root Directory** in project settings. Deploying a
-non-default branch: set **Production Branch**, or use the branch's preview URL.
-No filesystem writes, no `subprocess`, no `pip install` at runtime.
+- Put the app at the **repo root** and deploy from `main` (as `vercel-deploys` does).
+  Root Directory and Production Branch settings can be wrong without any visible error.
+- Data files must be declared in `includeFiles`. Only imported code is bundled.
+- No filesystem writes, no `subprocess`, no `pip install` at runtime.
+- `503 DEPLOYMENT_PAUSED` means the project is paused (by you or by a Hobby usage
+  limit). Go to Project → Settings → General → **Resume Project**. No redeploy needed.
+
+## ngrok
+
+```bash
+ngrok http 11434 --traffic-policy-file policy.yml   # NOT the deprecated --response-header-add
+```
+
+```yaml
+on_http_request:
+  - actions: [{type: add-headers, config: {headers: {host: "localhost:11434"}}}]
+on_http_response:
+  - actions: [{type: add-headers, config: {headers: {x-email: "you@example.com",
+               access-control-expose-headers: "*"}}}]
+```
+
+Browsers get an ngrok warning page unless they send `ngrok-skip-browser-warning`.
+
+## JWTs
+
+```python
+h, p, s = token.split(".")                 # base64url, no padding
+json.loads(base64.urlsafe_b64decode(p + "=" * (-len(p) % 4)))   # read the claims
+```
+
+Check `exp`, `sub` and any time-window claims (`week_id` = ISO week) **before** you rely
+on a token. `date +%G-W%V` prints the current ISO week.
+
+## dbt
+
+```sql
+{{ config(materialized='table') }}
+with src as (select ... from {{ ref('stg_x') }} where ts::date >= current_date - 30)
+select date_trunc('day', ts)::date as d, coalesce(sum(v), 0) as total
+from src group by 1 order by 1
+```
+
+`ref()` builds the dependency graph. Intermediate models use CTEs; marts aggregate
+and order.
