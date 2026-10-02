@@ -1,0 +1,14 @@
+on_http_request:
+  - actions:
+      - type: add-headers
+        config:
+          headers:
+            host: "localhost:11434"
+on_http_response:
+  - actions:
+      - type: add-headers
+        config:
+          headers:
+            x-email: "23f3002028@ds.study.iitm.ac.in"
+            access-control-expose-headers: "*"
+            access-control-allow-headers: "Authorization,Content-Type,User-Agent,Accept,Ngrok-skip-browser-warning"

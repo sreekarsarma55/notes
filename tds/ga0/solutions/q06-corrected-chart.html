@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Net Promoter Score by Region</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4/dist/chart.umd.min.js"></script>
+  <!--
+    Mismatch: the original palette is a one-directional ramp (a single-hue orange
+    sequential scheme, light to dark, repeated). A one-directional ramp makes negative
+    NPS scores appear as low-positive satisfaction rather than net-detractor regions:
+    North (-45) is drawn in the palest cream, so it reads as "slightly satisfied" when it
+    is the worst region, and the repeated colours make Urban (+50) look like North (-45).
+    Colour carries no information about which side of zero a region is on.
+
+    Correct scheme type: diverging. NPS has a meaningful midpoint at 0 that separates
+    net detractors (below 0) from net promoters (above 0), so the encoding needs two
+    opposing hues for the two directions, a near-white neutral at the zero point, and
+    saturation that grows with distance from zero. Red marks net-detractor regions,
+    green marks net-promoter regions, and the bars nearest zero are the palest.
+  -->
+  <style>
+    :root {
+      color-scheme: light dark;
+      --bg: rgb(255, 255, 255);
+      --text: rgb(33, 37, 41);
+      --subtext: rgb(108, 117, 125);
+    }
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: rgb(33, 37, 41);
+        --text: rgb(248, 249, 250);
+        --subtext: rgb(173, 181, 189);
+      }
+    }
+    body { font-family: sans-serif; margin: 16px; background: var(--bg); color: var(--text); }
+    h2 { font-size: 1rem; margin-bottom: 4px; }
+    p  { font-size: 0.8rem; color: var(--subtext); margin-bottom: 12px; }
+    canvas { max-height: 280px; }
+  </style>
+</head>
+<body>
+  <h2>Net Promoter Score by Region</h2>
+  <p>Net Promoter Score (NPS) by region, ranging from -45 to +72. Diverging colour
+     scheme: red = net detractors (below 0), green = net promoters (above 0), paler = closer to 0.</p>
+  <canvas id="chart"></canvas>
+  <script>
+    // FIXED: diverging palette (red -> near-white -> green), one colour per bar,
+    // ordered to match the data from most negative to most positive.
+    const colors = ["#d73027", "#f46d43", "#fdd0c0", "#d9f0d3", "#a6d96a", "#66bd63", "#1a9641"];
+    new Chart(document.getElementById('chart'), {
+      type: 'bar',
+      data: {
+        labels: ["North","South","East","West","Central","Urban","Rural"],
+        datasets: [{
+          label: 'Net Promoter Score by Region',
+          data: [-45,-20,-5,12,30,50,72],
+          backgroundColor: colors,
+          borderColor: "rgba(0, 0, 0, 0.35)",
+          borderWidth: 1
+        }]
+      },
+      options: {
+        responsive: true,
+        plugins: { legend: { display: false } },
+        scales: { y: { beginAtZero: false } }
+      }
+    });
+  </script>
+</body>
+</html>

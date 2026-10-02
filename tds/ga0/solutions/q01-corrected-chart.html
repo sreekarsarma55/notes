@@ -1,0 +1,72 @@
+<!--
+  Quantification: 1.27
+  Distortion: 1.27 (last-period gain 22.06 divided by first-period gain 17.41)
+
+  Manipulation: incorrect log scale on options.scales.y.type, which was "logarithmic".
+  The log scale compresses linear acceleration: pixels-per-unit falls off as 1/y, so the
+  top of the range is squashed and growth visually compressed by 1.3x. Equal absolute
+  gains are drawn progressively shorter, so genuinely linear growth appears flattened on
+  log and the largest, most recent gains look like the trend is tapering off.
+
+  Fix: options.scales.y now uses type: "linear" with beginAtZero: true, switching from a
+  logarithmic scale to a linear scale. Data, labels, colours, chart type and structure
+  are unchanged.
+
+  Corrected chart reveals: growth is a dead-straight +19.85 active users every period
+  (+88.1% overall) on a linear axis, not the decelerating curve the logarithmic axis implied.
+-->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Active users grow by a steady ~19.85 per period</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  <style>
+    body { font-family: system-ui, sans-serif; margin: 16px; }
+    canvas { max-height: 340px; }
+  </style>
+</head>
+<body>
+  <h3>Active users grow by a steady ~19.85 per period</h3>
+  <canvas id="chart"></canvas>
+  <script>
+    new Chart(document.getElementById('chart'), {
+      type: "line",
+      data: {
+        labels: ["M1", "M2", "M3", "M4", "M5", "M6", "M7", "M8", "M9"],
+        datasets: [{
+          label: "Active users",
+          data: [178.4, 195.81, 213.27, 239.42, 258.11, 279.37, 297.92, 313.52, 335.58],
+          borderColor: "#059669",
+          backgroundColor: "rgba(5, 150, 105, 0.12)",
+          tension: 0.25
+        }]
+      },
+      options: {
+        responsive: true,
+        plugins: {
+          title: {
+            display: true,
+            text: "Active users grow by a steady ~19.85 per period"
+          },
+          subtitle: {
+            display: true,
+            text: "Corrected: linear y-axis with zero baseline"
+          }
+        },
+        scales: {
+          y: {
+            type: "linear",
+            beginAtZero: true,
+            title: { display: true, text: "Active users" }
+          },
+          x: {
+            title: { display: true, text: "Period" }
+          }
+        }
+      }
+    });
+  </script>
+</body>
+</html>

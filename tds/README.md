@@ -17,8 +17,9 @@ That shape exists because of the single most useful thing learned in this course
 |---|---|
 | [`00-course-overview.md`](00-course-overview.md) | Course structure, grading split, weekly topics, strategy |
 | [`cheat-sheet.md`](cheat-sheet.md) | Command/API recall: `uv`, bash, git, FastAPI, CORS, Vercel, AI Pipe |
-| [`ga0/`](ga0/) | Graded Assignment 0 — per-question notes and solutions |
-| [`ga0/apps/`](ga0/apps/) | Deployable services the assignments require (FastAPI on Vercel) |
+| [`ga0/`](ga0/) | Graded Assignment 0: a guide per question (how it's graded, what we did and why) |
+| [`ga0/solutions/`](ga0/solutions/) | Files we submitted or ran (HTML, SQL, scripts, ngrok policy) |
+| [vercel-deploys](https://github.com/sreekarsarma55/vercel-deploys) | Separate repo: the FastAPI app behind every endpoint question (Q5, Q10, Q11, Q25) |
 
 ## ⚠️ How TDS grading actually works
 
@@ -39,7 +40,8 @@ The productive loop is: **read the validator → reproduce it offline → verify
 
 ## 📈 Status
 
-See [`ga0/README.md`](ga0/README.md) for the per-question mark tracker.
+GA0: **all 25 questions green and saved** (of 35.5 marks). See [`ga0/README.md`](ga0/README.md) for the
+question-by-skill table, the method and the recurring traps.
 
 ---
 

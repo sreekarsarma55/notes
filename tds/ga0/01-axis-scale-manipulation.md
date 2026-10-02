@@ -48,8 +48,8 @@ compression profile 8 on log axis           (scenarioId + 1)
 
 Distortion `1.27` (= 22.06 / 17.41, the grader's own formula before its 1-dp rounding),
 fix `scales.y.type` to `linear` with `beginAtZero: true`, and seed the comment with the
-required phrases. See [`apps/`](apps/) — the submission HTML is reproduced in the PR
-that added this note.
+required phrases. Submitted file:
+[`solutions/q01-corrected-chart.html`](solutions/q01-corrected-chart.html).
 
 Comment skeleton that satisfies checks 3–7:
 
