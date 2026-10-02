@@ -43,7 +43,8 @@ So no AI call is ever made for this account — **zero AI Pipe spend**.
 
 ## Solution
 
-[`apps/code-interpreter/`](apps/code-interpreter/) — a single FastAPI app:
+[`api/index.py` in `vercel-deploys`](https://github.com/sreekarsarma55/vercel-deploys/blob/main/api/index.py) — one FastAPI app
+(the same app also serves Q10, Q11 and Q25):
 
 - `execute_python_code()` compiles with filename `<code>`, runs `exec` with **one**
   namespace dict for globals *and* locals, and captures stdout via `redirect_stdout`.
@@ -86,10 +87,22 @@ documented Example 2                        error [3], traceback text matches th
 
 ## Deployment runbook
 
-See [`apps/code-interpreter/README.md`](apps/code-interpreter/README.md). Short version:
-import the repo at `vercel.com/new`, set **Root Directory** to
-`tds/ga0/apps/code-interpreter`, set the production branch to `tds`, deploy, then submit
-`https://<project>.vercel.app/code-interpreter`.
+The app lives at the **root** of the public repo
+[`sreekarsarma55/vercel-deploys`](https://github.com/sreekarsarma55/vercel-deploys) and
+deploys from `main`, so Vercel needs no Root Directory or Production Branch settings:
+
+```text
+1. vercel.com/new → import sreekarsarma55/vercel-deploys → Deploy (no settings changed)
+2. every merge to main redeploys automatically
+3. check https://vercel-deploys-iota.vercel.app/  → {"status": "ok", ...}
+4. submit https://vercel-deploys-iota.vercel.app/code-interpreter → Check → Save
+```
+
+Why a separate repo: the first plan deployed a subfolder of this notes repo from the
+`tds` branch. That needs two non-default Vercel settings (Root Directory, Production
+Branch), and getting either wrong deploys the wrong thing without any error. A
+dedicated repo with the app at the root and deploying from `main` has nothing to
+misconfigure.
 
 ## Traps
 
