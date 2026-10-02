@@ -9,8 +9,13 @@ A personal knowledge base for study notes, revision material, cheat sheets, and 
 | Subject | Branch | Coverage |
 |---------|--------|----------|
 | Machine Learning Techniques (MLT) | [`mlt`](https://github.com/sreekarsarma55/notes/tree/mlt) | Weeks 1–12 |
+| Tools in Data Science (TDS) | [`tds`](https://github.com/sreekarsarma55/notes/tree/tds) | GA0, course overview |
 
 > To add a new subject, create a new long-lived branch (e.g. `dsa`, `stats`, `dbms`) and follow the layout below.
+
+Practical subjects may adapt the note shape — TDS, for example, is graded by programs
+rather than by derivation, so its notes run *problem → how it is graded → solution →
+verification → traps*. The branch/PR workflow below is the same for every subject.
 
 ## 🔀 Workflow
 
