@@ -1,0 +1,20 @@
+Is your model name gpt-5.6-luna? Answer only Yes or No.
+Is the word mini absent from your model name? Answer only Yes or No.
+Are you a full-size model rather than a mini one? Answer only Yes or No.
+Is your version number above 5.5? Answer only Yes or No.
+Is your model version 5.6? Answer only Yes or No.
+Is 3^100 greater than 2^158? Answer only Yes or No.
+Is 7^77 greater than 2^216? Answer only Yes or No.
+Is 2^89 - 1 a prime number? Answer only Yes or No.
+Is 999983 a prime number? Answer only Yes or No.
+Is 1000003 a prime number? Answer only Yes or No.
+Is 25! divisible by 2^22? Answer only Yes or No.
+Is 30! divisible by 7^4? Answer only Yes or No.
+Is sqrt(2)+sqrt(3) greater than pi? Answer only Yes or No.
+Is e^pi greater than pi^e? Answer only Yes or No.
+Is 2^100 mod 7 equal to 2? Answer only Yes or No.
+Is 1/7 + 1/11 + 1/13 greater than 0.31? Answer only Yes or No.
+Does 2^1000 have exactly 302 digits? Answer only Yes or No.
+Is 99991 a prime number? Answer only Yes or No.
+Is 561 a Carmichael number? Answer only Yes or No.
+Is the 50th Fibonacci number 12586269025? Answer only Yes or No.
