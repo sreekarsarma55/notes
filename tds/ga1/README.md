@@ -3,6 +3,8 @@
 Quiz: `https://exam.sanand.workers.dev/tds-2026-09-ga1` · 16 questions · **22 marks** ·
 Due **Sun 18 Oct 2026, 11:59 pm IST**.
 
+**Result: 22 / 22, saved 9 Oct 2026.**
+
 ## What changed from GA0
 
 GA0 graded almost everything in the browser. GA1 moves most checks to the server:
@@ -39,7 +41,7 @@ call its generator (`ie`, `de`, `le`, `i1`, `N4`). This uses the grader's own co
 | 13 | termlog decode | 2 | server checks the signed recording | cipher = rot13(hex(reverse(code))) | run on your machine |
 | 14 | Live MCP server | 3 | server acts as a real MCP client, 5 tool calls | challenge comes from the **HTTP header**, not the JSON body | live grader passed |
 | 15 | Ledger agent | 4 | server sends 6 unseen questions, 15 s each | IST dates, latest `updated_at` wins, paid-only, currency → USD | live grader passed (54/54) |
-| 16 | Tangram | 2 | signed token whose match key = target | exact algebraic geometry, see below | **paused** |
+| 16 | Tangram | 2 | signed token whose match key = target | **the board's y-axis points up; the SVG's points down**; exact a + b√2 geometry | server match key = target |
 
 ## Notes per question
 
@@ -89,10 +91,32 @@ Keyword rules pick the shape; the numbers are computed from the data. The traps 
 the wording: 219 duplicated ids, half the timestamps in UTC (a `20:30Z` order on 31 Dec counts as
 1 Jan in IST), INR and EUR amounts.
 
-**Q16 (paused).** The board snaps translations to 1/16 units, but rotated vertices carry √2 parts,
-so the outline must match *exactly* in a + b√2 arithmetic. A raster solver finds layouts within
-about 1 px of the target, but none hit the exact match key yet, even after brute-forcing ±1 tick on
-every piece.
+**Q16.** The grader only accepts a token whose `match_key` equals the target's `expected_match_key`:
+a SHA-256 of the union outline, computed in exact `a + b√2` arithmetic with translation removed.
+"Close" scores zero.
+
+```text
+1. solve.py        backtracking exact cover on the target outline (shapely): next piece's
+                   top-left corner goes at the region's top-left corner, all 8 orientations
+2. pixfit.py       rasterise each layout, move pieces ±4 ticks to minimise pixel XOR with the target
+3. exact_search.mjs for each piece, every pose that draws the same polygon (different
+                   orientation/flip combinations land on different √2 lattices), then test the
+                   game's own computeMatchKey (imported from the game's JS)
+```
+
+**The bug that cost hours: the board draws with y pointing up, but the target is an SVG with y pointing
+down.** Every layout built from the unflipped picture was the mirror image of the target. It looked
+right to within 1 px, and no ±2-tick search could ever match the key. The fix was to flip the target
+(`y → 576 − y`) before solving. After that, the exact search found the match in 9 tries:
+
+```text
+state data  [[84,80,4,1],[180,48,0,1],[203,80,1,0],[116,16,0,1],[225,70,0,1],[148,16,0,0],[16,102,7,0]]
+server match_key 45da1499…6bff == expected_match_key   (this account's target, tg-044)
+```
+
+Paste the state into **State data**, then **Load state**, then **Generate signed payload**. Lesson: when
+an approximate fit is close but the exact check never passes, look for a frame-of-reference error
+(axis direction, units, origin) before you widen the search.
 
 ## Keep alive until the deadline
 
