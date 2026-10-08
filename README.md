@@ -16,10 +16,12 @@ That shape exists because of the single most useful thing learned in this course
 | File | What's in it |
 |---|---|
 | [`tds/00-course-overview.md`](tds/00-course-overview.md) | Course structure, grading split, weekly topics, strategy |
-| [`tds/cheat-sheet.md`](tds/cheat-sheet.md) | Command/API recall: `uv`, bash, git, FastAPI, CORS, Vercel, AI Pipe |
+| [`tds/cheat-sheet.md`](tds/cheat-sheet.md) | Command/API recall: `uv`, bash, git, FastAPI, CORS, Vercel, AI Pipe, ngrok, JWT, dbt |
 | [`tds/ga0/`](tds/ga0/) | Graded Assignment 0: a guide per question (how it's graded, what we did and why) |
-| [`tds/ga0/solutions/`](tds/ga0/solutions/) | Files we submitted or ran (HTML, SQL, scripts, ngrok policy) |
-| [vercel-deploys](https://github.com/sreekarsarma55/vercel-deploys) | Separate repo: the FastAPI app behind every endpoint question (Q5, Q10, Q11, Q25) |
+| [`tds/ga0/solutions/`](tds/ga0/solutions/) | GA0 files we submitted or ran (HTML, SQL, scripts, ngrok policy) |
+| [`tds/ga1/`](tds/ga1/) | Graded Assignment 1: grader map, what decided each question, and why |
+| [`tds/ga1/helpers/`](tds/ga1/helpers/) | GA1 scripts: JSON repair, file reorganise, cosine ranking, two-model prompt tester, tangram solver |
+| [vercel-deploys](https://github.com/sreekarsarma55/vercel-deploys) | Separate repo: the FastAPI app behind every live-endpoint question (GA0 Q5/Q10/Q11/Q25, GA1 Q6/Q14/Q15) |
 
 ## ⚠️ How TDS grading actually works
 
@@ -38,10 +40,23 @@ Consequences worth internalising:
 
 The productive loop is: **read the validator → reproduce it offline → verify → submit once.**
 
+**From GA1 on, most checks moved to the server.** The browser still *builds* each question's data
+from the seed, but sends your answer to `POST /backendVerify` for the verdict. That endpoint returns
+the same result as the Check button (it records nothing; only Save does), so the loop becomes:
+**rebuild the data offline → compute → confirm with the exact payload Check sends → Save.**
+Live-endpoint questions (MCP server, ledger agent, config service) are re-graded on every Check,
+so the deployment must stay up until the deadline.
+
 ## 📈 Status
 
-GA0: **all 25 questions green and saved** (of 35.5 marks). See [`tds/ga0/README.md`](tds/ga0/README.md) for the
-question-by-skill table, the method and the recurring traps.
+| Assignment | Score | Notes |
+|---|---|---|
+| GA0 | all 25 questions green and saved (35.5 marks) | [`tds/ga0/README.md`](tds/ga0/README.md): question-by-skill table, method, recurring traps |
+| GA1 | **22 / 22**, saved 9 Oct 2026 (due 18 Oct) | [`tds/ga1/README.md`](tds/ga1/README.md): what changed (server-side grading), per-question notes |
+
+Hardest lessons so far: browsers hide non-safelisted headers from JS (GA0 Q18/Q25), lossy WebP
+decodes differ per tool (GA0 Q14), and a mirrored y-axis made a tangram fit look right to within
+1 px but never match exactly (GA1 Q16).
 
 ---
 
