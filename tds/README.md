@@ -18,6 +18,7 @@ That shape exists because of the single most useful thing learned in this course
 | [`00-course-overview.md`](00-course-overview.md) | Course structure, grading split, weekly topics, strategy |
 | [`cheat-sheet.md`](cheat-sheet.md) | Command/API recall: `uv`, bash, git, FastAPI, CORS, Vercel, AI Pipe |
 | [`ga0/`](ga0/) | Graded Assignment 0: a guide per question (how it's graded, what we did and why) |
+| [`ga1/`](ga1/) | Graded Assignment 1: grader map, what we did and why, helper scripts |
 | [`ga0/solutions/`](ga0/solutions/) | Files we submitted or ran (HTML, SQL, scripts, ngrok policy) |
 | [vercel-deploys](https://github.com/sreekarsarma55/vercel-deploys) | Separate repo: the FastAPI app behind every endpoint question (Q5, Q10, Q11, Q25) |
 
