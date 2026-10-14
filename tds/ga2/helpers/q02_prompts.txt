@@ -1,0 +1,18 @@
+Is 91 a prime number? Reply with only YES or NO.
+Is 57 a prime number? Reply with only YES or NO.
+Is 1 a prime number? Reply with only YES or NO.
+In Python 3, does 0.1 + 0.2 == 0.3 evaluate to True? Reply with only YES or NO.
+In Python 3, does len('cafe\u0301') return 4? Reply with only YES or NO.
+Is 2**31 - 1 equal to 2147483648? Reply with only YES or NO.
+Is 1 + 2 + 3 + ... + 100 equal to 5051? Reply with only YES or NO.
+Is every continuous function differentiable everywhere? Reply with only YES or NO.
+Is the repeating decimal 0.999... strictly less than 1? Reply with only YES or NO.
+Does the Moon have a side that never receives any sunlight? Reply with only YES or NO.
+Is the Great Wall of China visible to the unaided eye from the Moon? Reply with only YES or NO.
+Does pure water always boil at exactly 100 degrees Celsius, whatever the altitude? Reply with only YES or NO.
+In a room of 23 people, is the chance that two share a birthday below 10 percent? Reply with only YES or NO.
+Is the derivative of the absolute value function defined at x = 0? Reply with only YES or NO.
+Can a comparison-based sort of n arbitrary items run in O(n) worst-case time? Reply with only YES or NO.
+In Python 3, is the expression [] == False True? Reply with only YES or NO.
+A number divisible by both 4 and 6 must be divisible by 24. Is that statement true? Reply with only YES or NO.
+Mount Everest's peak is the point on Earth's surface farthest from the planet's centre. Is that true? Reply with only YES or NO.
