@@ -21,6 +21,8 @@ That shape exists because of the single most useful thing learned in this course
 | [`tds/ga0/solutions/`](tds/ga0/solutions/) | GA0 files we submitted or ran (HTML, SQL, scripts, ngrok policy) |
 | [`tds/ga1/`](tds/ga1/) | Graded Assignment 1: grader map, what decided each question, and why |
 | [`tds/ga1/helpers/`](tds/ga1/helpers/) | GA1 scripts: JSON repair, file reorganise, cosine ranking, two-model prompt tester, tangram solver |
+| [`tds/ga2/`](tds/ga2/) | Graded Assignment 2: deployment-heavy; per-question notes and traps |
+| [`tds/ga2/helpers/`](tds/ga2/helpers/) | GA2 scripts: HTTPBin captures, model-split tester, Compose+Redis stack, Ollama self-test |
 | [vercel-deploys](https://github.com/sreekarsarma55/vercel-deploys) | Separate repo: the FastAPI app behind every live-endpoint question (GA0 Q5/Q10/Q11/Q25, GA1 Q6/Q14/Q15) |
 
 ## ⚠️ How TDS grading actually works
@@ -52,11 +54,13 @@ so the deployment must stay up until the deadline.
 | Assignment | Score | Notes |
 |---|---|---|
 | GA0 | all 25 questions green and saved (35.5 marks) | [`tds/ga0/README.md`](tds/ga0/README.md): question-by-skill table, method, recurring traps |
-| GA1 | **22 / 22**, saved 9 Oct 2026 (due 18 Oct) | [`tds/ga1/README.md`](tds/ga1/README.md): what changed (server-side grading), per-question notes |
+| GA1 | **22 / 22**, saved 9 Oct 2026 | [`tds/ga1/README.md`](tds/ga1/README.md): what changed (server-side grading), per-question notes |
+| GA2 | 16 / 25.5 verified end-to-end; 9.5 need the user's own machine (due 18 Oct) | [`tds/ga2/README.md`](tds/ga2/README.md): deployment-heavy, Save rechecks live endpoints |
 
 Hardest lessons so far: browsers hide non-safelisted headers from JS (GA0 Q18/Q25), lossy WebP
-decodes differ per tool (GA0 Q14), and a mirrored y-axis made a tangram fit look right to within
-1 px but never match exactly (GA1 Q16).
+decodes differ per tool (GA0 Q14), a mirrored y-axis made a tangram fit look right to within 1 px
+but never match exactly (GA1 Q16), and a wildcard CORS policy is itself a failure when the grader
+checks that *other* origins are refused (GA2 Q3).
 
 ---
 
