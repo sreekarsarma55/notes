@@ -57,6 +57,13 @@ markers, so nothing extra may be printed inside a capture. The flag choices that
 and `-o /dev/null -w '%{http_code}'` prints the status and nothing else (STATUS). All seven were
 run for real before being handed over: [`helpers/q01_httpbin.sh`](helpers/q01_httpbin.sh).
 
+The one that bites: **the commands must be typed (or pasted) inside the recording, not run from a
+script file.** The grader reads the recorded commands as well as the outputs, and `bash q01.sh`
+records only that single line. Six tasks still pass, because their output alone proves the request
+— but REDIRECT fails, since following `/redirect-to` returns byte-identical JSON to fetching
+`/get` directly, so the command text is the only evidence. We hit exactly that, and the grader said
+so: *"REDIRECT: follow /redirect-to to /get with your assigned tag."*
+
 **Q2.** The backend sends one user message to `gpt-5-nano` and `gpt-5-mini`, three times, with
 minimal reasoning effort, and accepts only a bare `YES`/`NO` (case and one trailing `.`/`!`
 ignored; a quoted answer or any explanation fails). Two of three trials must split.
