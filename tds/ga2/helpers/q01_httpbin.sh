@@ -17,7 +17,9 @@ capture FORM curl -sS -X PUT https://httpbin.org/put -d tag=http-80e8dcf7 -d qua
 
 capture AUTH curl -sS -H 'Authorization: Bearer http-80e8dcf7' https://httpbin.org/bearer
 
-capture REDIRECT curl -sS --location 'https://httpbin.org/redirect-to?url=https%3A%2F%2Fhttpbin.org%2Fget%3Ftag%3Dhttp-80e8dcf7'
+# Keep the inner URL readable: the grader looks for /redirect-to, /get and the tag in the
+# recorded command, and a percent-encoded %2Fget%3Ftag%3D never matches "/get".
+capture REDIRECT curl -sS --location 'https://httpbin.org/redirect-to?url=https://httpbin.org/get?tag=http-80e8dcf7'
 
 curl -sS --cookie-jar jar.txt --output /dev/null 'https://httpbin.org/cookies/set?exam=http-80e8dcf7'
 capture COOKIES curl -sS --cookie jar.txt https://httpbin.org/cookies

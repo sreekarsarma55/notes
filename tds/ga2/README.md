@@ -64,6 +64,12 @@ records only that single line. Six tasks still pass, because their output alone 
 `/get` directly, so the command text is the only evidence. We hit exactly that, and the grader said
 so: *"REDIRECT: follow /redirect-to to /get with your assigned tag."*
 
+Typing the commands fixed six of them but REDIRECT still failed, which pinned down the rest of the
+check: it looks for `/redirect-to`, `/get` **and** the tag inside the recorded command. A
+percent-encoded inner URL (`url=https%3A%2F%2Fhttpbin.org%2Fget%3Ftag%3D...`) contains `%2Fget`,
+never `/get`, so it fails even though the captured JSON is byte-identical. Pass the inner URL
+unencoded — httpbin parses it fine, because the second `?` is just part of the parameter value.
+
 **Q2.** The backend sends one user message to `gpt-5-nano` and `gpt-5-mini`, three times, with
 minimal reasoning effort, and accepts only a bare `YES`/`NO` (case and one trailing `.`/`!`
 ignored; a quoted answer or any explanation fails). Two of three trials must split.
